@@ -4,129 +4,152 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Visos Keratin — Agenda tu cita</title>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,600;1,300&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <style>
 :root{
-  --primary:#7c3aed;--primary-light:#a855f7;--primary-pale:#f5f0ff;
-  --accent:#ec4899;--accent-light:#f472b6;--accent-dim:#9d174d;
-  --black:#f8f5ff;--dark:#ffffff;--dark2:#f3eeff;--dark3:#ede5ff;
-  --border:rgba(168,85,247,0.18);--border-b:rgba(168,85,247,0.45);
-  --muted:rgba(100,60,160,0.55);--text:#2d1b69;--r:6px;
+  --bg:#F5F0E8;--white:#FFFFFF;--navy:#1B2B4B;--navy2:#2C3E6B;
+  --gold:#D4A017;--gold-light:#E8B830;--gold-pale:#FDF6E3;
+  --gray:#E8E4DC;--gray2:#C8C4BC;--text:#1B2B4B;--muted:#7A7A7A;
+  --red:#C0392B;--r:14px;--r-sm:8px;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 html,body{min-height:100vh;overflow-x:hidden;}
-body{background:var(--black);color:var(--text);font-family:'Montserrat',sans-serif;font-weight:300;}
-body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 60% 40% at 20% 10%,rgba(168,85,247,0.05) 0%,transparent 70%),radial-gradient(ellipse 40% 60% at 80% 90%,rgba(236,72,153,0.03) 0%,transparent 70%);pointer-events:none;z-index:0;}
-.app{position:relative;z-index:1;max-width:480px;margin:0 auto;padding:0 0 5rem;}
+body{background:var(--bg);color:var(--text);font-family:'Montserrat',sans-serif;font-weight:400;}
+.app{max-width:480px;margin:0 auto;padding:0 0 5rem;min-height:100vh;}
+
+/* HEADER */
 .header{position:relative;overflow:hidden;}
-.header-img-wrap{position:relative;width:100%;height:200px;}
+.header-img-wrap{position:relative;width:100%;height:220px;}
 .header-img{width:100%;height:100%;object-fit:cover;object-position:center top;display:block;}
-.header-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(15,10,26,0.2) 0%,rgba(15,10,26,0.75) 100%);display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:1.25rem 1rem;}
-.logo-main{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;letter-spacing:7px;color:#fff;text-transform:uppercase;display:block;line-height:1;text-shadow:0 1px 8px rgba(0,0,0,0.5);}
-.logo-lema{font-size:9px;letter-spacing:2px;color:rgba(255,255,255,0.75);text-transform:uppercase;margin-top:5px;display:block;font-style:italic;line-height:1.5;text-align:center;}
-.progress-wrap{padding:1.25rem 1.5rem 0;}
+.header-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(27,43,75,0.15) 0%,rgba(27,43,75,0.75) 100%);display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:1.5rem 1rem;}
+.logo-main{font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:600;letter-spacing:6px;color:#fff;text-transform:uppercase;display:block;line-height:1;text-shadow:0 2px 8px rgba(0,0,0,0.4);}
+.logo-lema{font-size:10px;letter-spacing:1.5px;color:rgba(255,255,255,0.85);margin-top:6px;display:block;font-style:italic;text-align:center;text-shadow:0 1px 4px rgba(0,0,0,0.4);}
+
+/* PROGRESS */
+.progress-wrap{padding:1.5rem 1.5rem 0;background:var(--bg);}
 .progress-bar{display:flex;align-items:center;}
-.prog-step{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;}
-.prog-circle{width:22px;height:22px;border-radius:50%;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:9px;color:rgba(124,58,237,.3);transition:all .3s;background:#fff;}
-.prog-circle.done{border-color:#a855f7;color:#a855f7;background:rgba(168,85,247,.12);}
-.prog-circle.active{border-color:#d8b4fe;color:#d8b4fe;background:rgba(168,85,247,.15);box-shadow:0 0 8px rgba(168,85,247,.2);}
-.prog-line{flex:1;height:.5px;background:rgba(168,85,247,.12);transition:background .3s;margin-top:-14px;}
-.prog-line.done{background:#a855f7;}
-.prog-label{font-size:8px;letter-spacing:1px;color:#7c3aed;text-transform:uppercase;white-space:nowrap;}
+.prog-step{display:flex;flex-direction:column;align-items:center;gap:5px;flex:1;}
+.prog-circle{width:36px;height:36px;border-radius:50%;border:2px solid var(--gray2);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:var(--gray2);transition:all .3s;background:var(--white);}
+.prog-circle.done{border-color:var(--gold);background:var(--gold);color:#fff;}
+.prog-circle.active{border-color:var(--navy);background:var(--navy);color:#fff;}
+.prog-line{flex:1;height:2px;background:var(--gray);transition:background .3s;margin-top:-22px;}
+.prog-line.done{background:var(--gold);}
+.prog-label{font-size:8px;letter-spacing:1px;color:var(--muted);text-transform:uppercase;white-space:nowrap;font-weight:500;}
+
+/* STEPS */
 .step{display:none;padding:1.5rem;animation:fadeIn .3s ease;}
 .step.active{display:block;}
 @keyframes fadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
-.step-eyebrow{font-size:9px;letter-spacing:3px;color:#a855f7;text-transform:uppercase;margin-bottom:5px;opacity:.8;}
-.step-title{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:300;color:#4c1d95;letter-spacing:1px;margin-bottom:1.25rem;}
+.step-title{font-size:22px;font-weight:700;color:var(--navy);margin-bottom:1.25rem;letter-spacing:-.3px;}
+
+/* ALERTS */
+.alert-warn{padding:12px 16px;border-radius:var(--r-sm);background:#FEF9EC;border:1px solid #F0D080;font-size:12px;color:#7A5C00;margin-bottom:1rem;line-height:1.7;}
+.alert-notice{padding:12px 16px;border-radius:var(--r-sm);background:#EEF2FF;border:1px solid #C7D2FE;font-size:12px;color:#3730A3;margin-bottom:1rem;line-height:1.7;}
+
+/* FIELDS */
 .field{margin-bottom:1.1rem;}
-.field label{display:block;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#7c3aed;margin-bottom:7px;}
-.field input{width:100%;background:#fff;border:.5px solid rgba(168,85,247,.2);border-radius:var(--r);padding:11px 13px;color:#2d1b69;font-family:'Montserrat',sans-serif;font-size:14px;font-weight:300;outline:none;transition:border-color .2s;}
-.field input:focus{border-color:#a855f7;}
-.field input::placeholder{color:rgba(212,237,217,.2);}
-.alert-notice{padding:10px 14px;border-left:2px solid #a855f7;background:#f3eeff;border-radius:0 var(--r) var(--r) 0;font-size:11px;color:#5b21b6;margin-bottom:1rem;line-height:1.7;}
-.alert-notice strong{color:#d8b4fe;}
-.alert-warn{padding:10px 14px;border-left:2px solid #ec4899;background:#fff0f7;border-radius:0 var(--r) var(--r) 0;font-size:11px;color:#9d174d;margin-bottom:1rem;line-height:1.7;}
-.services-list{display:flex;flex-direction:column;gap:6px;margin-bottom:1rem;}
-.svc-item{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;background:#fff;border:.5px solid rgba(168,85,247,.18);border-radius:var(--r);cursor:pointer;transition:all .2s;user-select:none;}
-.svc-item:hover{border-color:var(--border-b);background:#ede5ff;}
-.svc-item.selected{border-color:#a855f7;background:rgba(168,85,247,.1);}
-.svc-left{display:flex;align-items:center;gap:10px;}
-.svc-check{width:16px;height:16px;border-radius:3px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:10px;color:transparent;transition:all .2s;flex-shrink:0;background:#fff;}
-.svc-item.selected .svc-check{border-color:#a855f7;background:#a855f7;color:#fff;}
-.svc-info{display:flex;flex-direction:column;gap:1px;}
-.svc-name{font-size:13px;color:#2d1b69;font-weight:400;}
-.svc-time{font-size:11px;color:#9333ea;}
-.sel-summary{background:#f3eeff;border:.5px solid rgba(168,85,247,.2);border-radius:var(--r);padding:10px 14px;font-size:12px;color:#5b21b6;margin-bottom:1rem;display:none;line-height:1.6;}
+.field label{display:block;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--navy);margin-bottom:8px;font-weight:600;}
+.field input{width:100%;background:var(--white);border:1.5px solid var(--gray);border-radius:var(--r);padding:14px 16px;color:var(--navy);font-family:'Montserrat',sans-serif;font-size:14px;font-weight:400;outline:none;transition:border-color .2s;box-shadow:0 1px 3px rgba(0,0,0,0.04);}
+.field input:focus{border-color:var(--gold);}
+.field input::placeholder{color:var(--gray2);}
+
+/* SERVICES */
+.services-list{display:flex;flex-direction:column;gap:8px;margin-bottom:1rem;}
+.svc-item{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;background:var(--white);border:1.5px solid var(--gray);border-radius:var(--r);cursor:pointer;transition:all .2s;box-shadow:0 1px 3px rgba(0,0,0,0.04);}
+.svc-item:hover{border-color:var(--gold-light);}
+.svc-item.selected{border-color:var(--gold);background:var(--gold-pale);}
+.svc-left{display:flex;align-items:center;gap:12px;}
+.svc-check{width:20px;height:20px;border-radius:5px;border:2px solid var(--gray2);display:flex;align-items:center;justify-content:center;font-size:11px;color:transparent;transition:all .2s;flex-shrink:0;background:var(--white);}
+.svc-item.selected .svc-check{border-color:var(--gold);background:var(--gold);color:#fff;}
+.svc-name{font-size:13px;color:var(--navy);font-weight:500;}
+.svc-time{font-size:11px;color:var(--muted);margin-top:1px;}
+.sel-summary{background:var(--gold-pale);border:1px solid var(--gold);border-radius:var(--r-sm);padding:10px 14px;font-size:12px;color:#7A5C00;margin-bottom:1rem;display:none;font-weight:500;}
 .sel-summary.show{display:block;}
-.sel-summary strong{color:#7c3aed;}
+
+/* STAFF */
 .staff-list{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
-.staff-item{padding:14px 8px;background:#fff;border:.5px solid rgba(168,85,247,.18);border-radius:var(--r);cursor:pointer;text-align:center;transition:all .2s;}
-.staff-item:hover{border-color:var(--border-b);}
-.staff-item.selected{border-color:#a855f7;background:rgba(168,85,247,.1);}
-.staff-avatar{width:42px;height:42px;border-radius:50%;margin:0 auto 7px;display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:15px;border:1px solid var(--border);color:#7c3aed;background:#ede5ff;}
-.staff-name{font-size:13px;color:#2d1b69;font-weight:400;}
-.staff-role{font-size:10px;color:#9333ea;margin-top:2px;}
-/* Calendario */
-.cal-wrap{background:#fff;border:.5px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:1rem;}
-.cal-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:.5px solid var(--border);background:linear-gradient(135deg,#7c3aed,#ec4899);border-radius:6px 6px 0 0;}
-.cal-title{font-family:'Cormorant Garamond',serif;font-size:18px;color:#4c1d95;font-weight:300;letter-spacing:1px;}
-.cal-nav{background:transparent;border:.5px solid var(--border);border-radius:var(--r);color:#7c3aed;cursor:pointer;padding:5px 10px;font-size:14px;transition:all .2s;}
-.cal-nav:hover{border-color:#a855f7;color:#4c1d95;}
-.cal-days-header{display:grid;grid-template-columns:repeat(7,1fr);text-align:center;padding:8px 8px 4px;}
-.cal-day-lbl{font-size:10px;letter-spacing:1px;color:#9333ea;text-transform:uppercase;}
-.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;padding:4px 8px 10px;}
-.cal-day{aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:50%;font-size:12px;cursor:pointer;transition:all .2s;color:#2d1b69;position:relative;}
-.cal-day:hover:not(.disabled):not(.past){background:#ede5ff;}
-.cal-day.selected{background:#a855f7;color:#fff;font-weight:500;}
-.cal-day.today{border:1px solid #a855f7;color:#d8b4fe;}
-.cal-day.disabled,.cal-day.past{color:rgba(124,58,237,.2);cursor:not-allowed;}
-.cal-day.festivo{color:var(--accent);}
-.cal-day.festivo::after{content:'';position:absolute;bottom:2px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:var(--accent);}
-.cal-day.domingo{color:rgba(124,58,237,.2);cursor:not-allowed;}
-.cal-legend{display:flex;gap:12px;padding:0 12px 10px;flex-wrap:wrap;}
-.leg-item{display:flex;align-items:center;gap:5px;font-size:10px;color:#5b21b6;}
+.staff-item{padding:16px 8px;background:var(--white);border:1.5px solid var(--gray);border-radius:var(--r);cursor:pointer;text-align:center;transition:all .2s;box-shadow:0 1px 3px rgba(0,0,0,0.04);}
+.staff-item:hover{border-color:var(--gold-light);}
+.staff-item.selected{border-color:var(--gold);background:var(--gold-pale);}
+.staff-avatar{width:46px;height:46px;border-radius:50%;margin:0 auto 8px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:var(--white);background:var(--navy);}
+.staff-name{font-size:13px;color:var(--navy);font-weight:600;}
+.staff-role{font-size:10px;color:var(--muted);margin-top:2px;}
+
+/* CALENDAR */
+.cal-wrap{background:var(--white);border:1.5px solid var(--gray);border-radius:var(--r);overflow:hidden;margin-bottom:1rem;box-shadow:0 2px 8px rgba(0,0,0,0.06);}
+.cal-header{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--navy);}
+.cal-title{font-size:16px;font-weight:700;color:#fff;letter-spacing:.5px;}
+.cal-nav{background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);border-radius:var(--r-sm);color:#fff;cursor:pointer;padding:6px 12px;font-size:14px;transition:all .2s;font-family:'Montserrat',sans-serif;}
+.cal-nav:hover{background:rgba(255,255,255,0.25);}
+.cal-days-header{display:grid;grid-template-columns:repeat(7,1fr);text-align:center;padding:10px 8px 4px;}
+.cal-day-lbl{font-size:10px;letter-spacing:1px;color:var(--muted);text-transform:uppercase;font-weight:600;}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;padding:4px 8px 12px;}
+.cal-day{aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:50%;font-size:13px;cursor:pointer;transition:all .2s;color:var(--navy);font-weight:500;position:relative;}
+.cal-day:hover:not(.disabled):not(.past):not(.domingo){background:var(--gold-pale);}
+.cal-day.selected{background:var(--gold);color:#fff;font-weight:700;}
+.cal-day.today{border:2px solid var(--navy);color:var(--navy);}
+.cal-day.disabled,.cal-day.past{color:var(--gray2);cursor:not-allowed;}
+.cal-day.festivo{color:var(--gold);}
+.cal-day.festivo::after{content:'';position:absolute;bottom:2px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:var(--gold);}
+.cal-day.domingo{color:var(--gray2);cursor:not-allowed;}
+.cal-legend{display:flex;gap:14px;padding:0 12px 12px;flex-wrap:wrap;}
+.leg-item{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--muted);font-weight:500;}
 .leg-dot{width:8px;height:8px;border-radius:50%;}
-.time-info{font-size:11px;color:#5b21b6;margin-bottom:10px;line-height:1.7;}
-.slots-wrap{background:#fff;border:.5px solid var(--border);border-radius:var(--r);padding:12px;}
-.slots-label{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#7c3aed;margin-bottom:10px;}
+
+/* SLOTS */
+.time-info{font-size:12px;color:var(--muted);margin-bottom:10px;line-height:1.7;font-weight:500;}
+.slots-wrap{background:var(--white);border:1.5px solid var(--gray);border-radius:var(--r);padding:14px;margin-bottom:1rem;box-shadow:0 1px 4px rgba(0,0,0,0.04);}
+.slots-label{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--navy);margin-bottom:10px;font-weight:700;}
 .slots-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;}
-.slot{padding:10px 4px;text-align:center;background:#f8f5ff;border:.5px solid rgba(168,85,247,.15);border-radius:var(--r);cursor:pointer;font-size:12px;color:var(--text);transition:all .2s;}
-.slot:hover:not(.taken){border-color:var(--border-b);}
-.slot.selected{border-color:#a855f7;color:#7c3aed;background:#f3eeff;font-weight:500;}
-.slot.taken{opacity:.3;cursor:not-allowed;text-decoration:line-through;color:var(--muted);}
+.slot{padding:10px 4px;text-align:center;background:var(--bg);border:1.5px solid var(--gray);border-radius:var(--r-sm);cursor:pointer;font-size:12px;color:var(--navy);transition:all .2s;font-weight:500;}
+.slot:hover:not(.taken){border-color:var(--gold);}
+.slot.selected{border-color:var(--gold);color:var(--gold);background:var(--gold-pale);font-weight:700;}
+.slot.taken{opacity:.35;cursor:not-allowed;text-decoration:line-through;color:var(--muted);}
 .no-slots{text-align:center;padding:1rem;color:var(--muted);font-size:12px;grid-column:1/-1;}
-.summary-card{background:#fff;border:.5px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:1.5rem;}
-.sum-row{display:flex;justify-content:space-between;align-items:flex-start;padding:10px 14px;border-bottom:.5px solid var(--border);font-size:13px;}
+
+/* SUMMARY */
+.summary-card{background:var(--white);border:1.5px solid var(--gray);border-radius:var(--r);overflow:hidden;margin-bottom:1.5rem;box-shadow:0 2px 8px rgba(0,0,0,0.06);}
+.sum-header{background:var(--navy);padding:12px 16px;}
+.sum-header-title{font-size:12px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.7);font-weight:600;}
+.sum-row{display:flex;justify-content:space-between;align-items:flex-start;padding:10px 16px;border-bottom:1px solid var(--gray);font-size:13px;}
 .sum-row:last-child{border-bottom:none;}
-.sum-label{color:#9333ea;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;flex-shrink:0;margin-right:8px;padding-top:1px;}
-.sum-val{color:#2d1b69;font-weight:400;text-align:right;}
-.sum-green{color:#7c3aed;}
-.notif-row{display:flex;gap:6px;flex-wrap:wrap;padding:10px 14px;border-top:.5px solid var(--border);}
-.notif-pill{padding:4px 10px;border-radius:20px;font-size:10px;letter-spacing:1px;text-transform:uppercase;border:.5px solid #a855f7;color:#7c3aed;background:#ede5ff;}
-.btn-primary{width:100%;padding:13px;background:#a855f7;color:#fff;border:none;border-radius:var(--r);font-family:'Montserrat',sans-serif;font-size:11px;font-weight:600;letter-spacing:3px;text-transform:uppercase;cursor:pointer;transition:all .2s;margin-top:1rem;}
-.btn-primary:hover{background:#9333ea;}
-.btn-primary:disabled{opacity:.5;cursor:not-allowed;}
-.btn-ghost{width:100%;padding:11px;background:transparent;color:#7c3aed;border:.5px solid rgba(168,85,247,.3);border-radius:var(--r);font-family:'Montserrat',sans-serif;font-size:11px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:all .2s;margin-top:8px;}
-.btn-ghost:hover{border-color:var(--border-b);color:var(--text);}
-.btn-cancel{width:100%;padding:11px;background:transparent;color:#dc2626;border:.5px solid rgba(220,38,38,.3);border-radius:var(--r);font-family:'Montserrat',sans-serif;font-size:11px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:all .2s;margin-top:8px;}
-.btn-cancel:hover{border-color:#dc2626;color:#991b1b;}
+.sum-label{color:var(--muted);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;flex-shrink:0;margin-right:8px;padding-top:2px;font-weight:600;}
+.sum-val{color:var(--navy);font-weight:600;text-align:right;}
+.sum-gold{color:var(--gold);}
+.notif-row{display:flex;gap:6px;flex-wrap:wrap;padding:10px 16px;border-top:1px solid var(--gray);background:var(--bg);}
+.notif-pill{padding:4px 12px;border-radius:20px;font-size:10px;letter-spacing:1px;text-transform:uppercase;border:1.5px solid var(--gold);color:var(--gold);background:var(--gold-pale);font-weight:600;}
+
+/* BUTTONS */
+.btn-primary{width:100%;padding:16px;background:var(--gold);color:#fff;border:none;border-radius:var(--r);font-family:'Montserrat',sans-serif;font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:all .2s;margin-top:1rem;box-shadow:0 4px 12px rgba(212,160,23,0.3);}
+.btn-primary:hover{background:var(--gold-light);transform:translateY(-1px);}
+.btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none;}
+.btn-secondary{width:100%;padding:14px;background:var(--white);color:var(--navy);border:1.5px solid var(--navy);border-radius:var(--r);font-family:'Montserrat',sans-serif;font-size:12px;font-weight:600;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:all .2s;margin-top:8px;}
+.btn-secondary:hover{background:var(--bg);}
+.btn-cancel{width:100%;padding:14px;background:var(--white);color:var(--red);border:1.5px solid var(--red);border-radius:var(--r);font-family:'Montserrat',sans-serif;font-size:12px;font-weight:600;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:all .2s;margin-top:8px;}
+.btn-cancel:hover{background:#FEF2F2;}
+
+/* SUCCESS */
 .success-wrap{text-align:center;padding:2.5rem 1.5rem;}
-.success-icon{width:68px;height:68px;border-radius:50%;border:1px solid #a855f7;margin:0 auto 1.25rem;display:flex;align-items:center;justify-content:center;font-size:28px;background:rgba(168,85,247,.08);animation:pulse 2s ease infinite;}
-@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(168,85,247,.2);}50%{box-shadow:0 0 0 12px rgba(168,85,247,0);}}
-.success-title{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;color:#4c1d95;letter-spacing:2px;margin-bottom:6px;}
-.success-sub{font-size:12px;color:#7c3aed;letter-spacing:1px;margin-bottom:1.5rem;}
-.success-detail{background:#fff;border:.5px solid var(--border);border-radius:var(--r);padding:1.1rem;text-align:left;margin-bottom:1.25rem;}
-.success-detail p{font-size:13px;color:#5b21b6;margin-bottom:5px;line-height:1.6;}
-.success-detail strong{color:#2d1b69;font-weight:400;}
+.success-icon{width:72px;height:72px;border-radius:50%;border:3px solid var(--gold);margin:0 auto 1.25rem;display:flex;align-items:center;justify-content:center;font-size:30px;background:var(--gold-pale);animation:pulse 2s ease infinite;}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(212,160,23,.3);}50%{box-shadow:0 0 0 12px rgba(212,160,23,0);}}
+.success-title{font-size:26px;font-weight:700;color:var(--navy);margin-bottom:6px;letter-spacing:-.3px;}
+.success-sub{font-size:13px;color:var(--muted);margin-bottom:1.5rem;}
+.success-detail{background:var(--white);border:1.5px solid var(--gray);border-radius:var(--r);padding:1.1rem;text-align:left;margin-bottom:1.25rem;box-shadow:0 1px 4px rgba(0,0,0,0.04);}
+.success-detail p{font-size:13px;color:var(--muted);margin-bottom:5px;line-height:1.6;}
+.success-detail strong{color:var(--navy);font-weight:600;}
 .notifs-sent{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-bottom:1.5rem;}
-/* cancelar cita */
+
+/* CANCEL SCREEN */
 .cancel-screen{text-align:center;padding:2rem 1.5rem;}
-.cancel-icon{font-size:40px;margin-bottom:1rem;}
-.cancel-title{font-family:'Cormorant Garamond',serif;font-size:24px;color:#dc2626;margin-bottom:8px;}
-.cancel-sub{font-size:12px;color:#9d174d;margin-bottom:1.5rem;line-height:1.6;}
-.cancel-detail{background:#fef2f2;border:.5px solid rgba(200,80,80,.2);border-radius:var(--r);padding:1rem;margin-bottom:1.25rem;text-align:left;}
-.cancel-detail p{font-size:13px;color:#9d174d;margin-bottom:4px;line-height:1.6;}
-.cancel-detail strong{color:#991b1b;}
+.cancel-icon{font-size:48px;margin-bottom:1rem;}
+.cancel-title{font-size:22px;font-weight:700;color:var(--red);margin-bottom:8px;}
+.cancel-sub{font-size:13px;color:var(--muted);margin-bottom:1.5rem;line-height:1.6;}
+.cancel-detail{background:var(--white);border:1.5px solid #FCA5A5;border-radius:var(--r);padding:1rem;margin-bottom:1.25rem;text-align:left;}
+.cancel-detail p{font-size:13px;color:var(--muted);margin-bottom:4px;line-height:1.6;}
+.cancel-detail strong{color:var(--navy);font-weight:600;}
+
+/* LINK en notificacion */
+.cancel-link-box{background:var(--gold-pale);border:1px solid var(--gold);border-radius:var(--r-sm);padding:10px 14px;font-size:12px;color:#7A5C00;margin-top:1rem;line-height:1.7;}
 </style>
 </head>
 <body>
@@ -140,6 +163,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
       </div>
     </div>
   </div>
+
   <div class="progress-wrap">
     <div class="progress-bar">
       <div class="prog-step"><div class="prog-circle active" id="pc1">1</div><span class="prog-label">Datos</span></div>
@@ -156,39 +180,35 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 
   <!-- PASO 1 -->
   <div class="step active" id="step1">
-    <p class="step-eyebrow">Paso 1 de 5</p>
     <h2 class="step-title">Tus datos</h2>
-    <div class="alert-warn">⚠️ <strong>Las citas deben reservarse con mínimo 24 horas de antelación.</strong></div>
-    <div class="alert-notice">✨ Por motivos de aforo y comodidad, les pedimos asistir <strong>sin niños ni acompañantes.</strong></div>
+    <div class="alert-warn">⚠️ Las citas deben reservarse con <strong>mínimo 24 horas de antelación.</strong></div>
+    <div class="alert-notice">💆‍♀️ Por motivos de aforo y comodidad, les pedimos asistir <strong>sin niños ni acompañantes.</strong></div>
     <div class="field"><label>Nombre completo *</label><input type="text" id="nombre" placeholder="Ej: María García"/></div>
     <div class="field"><label>WhatsApp / Celular *</label><input type="tel" id="telefono" placeholder="+57 300 000 0000"/></div>
     <div class="field"><label>Correo electrónico *</label><input type="email" id="correo" placeholder="tu@correo.com"/></div>
-    <button class="btn-primary" onclick="goStep(2)">Continuar →</button>
+    <button class="btn-primary" onclick="goStep(2)">Siguiente →</button>
   </div>
 
   <!-- PASO 2 -->
   <div class="step" id="step2">
-    <p class="step-eyebrow">Paso 2 de 5</p>
     <h2 class="step-title">Elige tus servicios</h2>
-    <div class="alert-notice">Puedes seleccionar <strong>varios servicios</strong> a la vez. El tiempo total se calcula automáticamente.</div>
+    <div class="alert-notice">Puedes seleccionar <strong>varios servicios</strong> a la vez.</div>
     <div class="services-list" id="servicesList"></div>
     <div class="sel-summary" id="selSummary"></div>
-    <button class="btn-primary" onclick="goStep(3)">Continuar →</button>
-    <button class="btn-ghost" onclick="goStep(1)">← Volver</button>
+    <button class="btn-primary" onclick="goStep(3)">Siguiente →</button>
+    <button class="btn-secondary" onclick="goStep(1)">← Atrás</button>
   </div>
 
   <!-- PASO 3 -->
   <div class="step" id="step3">
-    <p class="step-eyebrow">Paso 3 de 5</p>
     <h2 class="step-title">Elige tu estilista</h2>
     <div class="staff-list" id="staffList"></div>
-    <button class="btn-primary" onclick="goStep(4)">Continuar →</button>
-    <button class="btn-ghost" onclick="goStep(2)">← Volver</button>
+    <button class="btn-primary" onclick="goStep(4)">Siguiente →</button>
+    <button class="btn-secondary" onclick="goStep(2)">← Atrás</button>
   </div>
 
   <!-- PASO 4 -->
   <div class="step" id="step4">
-    <p class="step-eyebrow">Paso 4 de 5</p>
     <h2 class="step-title">Fecha y hora</h2>
     <div class="cal-wrap">
       <div class="cal-header">
@@ -202,9 +222,9 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
       </div>
       <div class="cal-grid" id="calGrid"></div>
       <div class="cal-legend">
-        <div class="leg-item"><div class="leg-dot" style="background:#a855f7"></div> Hoy</div>
-        <div class="leg-item"><div class="leg-dot" style="background:var(--accent)"></div> Festivo</div>
-        <div class="leg-item"><div class="leg-dot" style="background:rgba(212,237,217,.2)"></div> No disponible</div>
+        <div class="leg-item"><div class="leg-dot" style="background:var(--navy);border:2px solid var(--navy)"></div>Hoy</div>
+        <div class="leg-item"><div class="leg-dot" style="background:var(--gold)"></div>Festivo</div>
+        <div class="leg-item"><div class="leg-dot" style="background:var(--gray2)"></div>No disponible</div>
       </div>
     </div>
     <div class="time-info" id="timeInfo">Selecciona una fecha para ver los horarios disponibles.</div>
@@ -212,22 +232,22 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
       <p class="slots-label">Horas disponibles</p>
       <div class="slots-grid" id="slotsGrid"></div>
     </div>
-    <button class="btn-primary" onclick="goStep(5)">Continuar →</button>
-    <button class="btn-ghost" onclick="goStep(3)">← Volver</button>
+    <button class="btn-primary" onclick="goStep(5)">Siguiente →</button>
+    <button class="btn-secondary" onclick="goStep(3)">← Atrás</button>
   </div>
 
   <!-- PASO 5 -->
   <div class="step" id="step5">
-    <p class="step-eyebrow">Paso 5 de 5</p>
     <h2 class="step-title">Confirma tu cita</h2>
     <div class="summary-card">
+      <div class="sum-header"><div class="sum-header-title">Resumen de tu cita</div></div>
       <div class="sum-row"><span class="sum-label">Clienta</span><span class="sum-val" id="s-nombre">—</span></div>
       <div class="sum-row"><span class="sum-label">WhatsApp</span><span class="sum-val" id="s-tel">—</span></div>
-      <div class="sum-row"><span class="sum-label">Servicios</span><span class="sum-val sum-green" id="s-servicio">—</span></div>
+      <div class="sum-row"><span class="sum-label">Servicios</span><span class="sum-val sum-gold" id="s-servicio">—</span></div>
       <div class="sum-row"><span class="sum-label">Duración</span><span class="sum-val" id="s-dur">—</span></div>
       <div class="sum-row"><span class="sum-label">Estilista</span><span class="sum-val" id="s-staff">—</span></div>
       <div class="sum-row"><span class="sum-label">Fecha</span><span class="sum-val" id="s-fecha">—</span></div>
-      <div class="sum-row"><span class="sum-label">Hora inicio</span><span class="sum-val sum-green" id="s-inicio">—</span></div>
+      <div class="sum-row"><span class="sum-label">Hora inicio</span><span class="sum-val sum-gold" id="s-inicio">—</span></div>
       <div class="sum-row"><span class="sum-label">Hora fin aprox.</span><span class="sum-val" id="s-fin">—</span></div>
       <div class="notif-row">
         <span class="notif-pill">📱 WhatsApp</span>
@@ -235,43 +255,46 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
       </div>
     </div>
     <button class="btn-primary" onclick="confirmar()" id="btnConfirmar">Agendar cita</button>
-    <button class="btn-ghost" onclick="goStep(4)">← Volver</button>
+    <button class="btn-secondary" onclick="goStep(4)">← Atrás</button>
   </div>
 
   <!-- ÉXITO -->
   <div class="step" id="step6">
     <div class="success-wrap">
-      <div class="success-icon">✨</div>
+      <div class="success-icon">✂️</div>
       <h2 class="success-title">¡Cita Agendada!</h2>
-      <p class="success-sub">Te esperamos con todo listo</p>
+      <p class="success-sub">Te esperamos con todo listo 💛</p>
       <div class="success-detail" id="successDetail"></div>
-      <div class="alert-warn" style="margin-bottom:1rem;">⚠️ Recuerda: <strong>sin niños ni acompañantes.</strong> Gracias por tu comprensión.</div>
+      <div class="alert-notice" style="margin-bottom:1rem;text-align:left;">💆‍♀️ Recuerda: <strong>sin niños ni acompañantes.</strong></div>
       <div class="notifs-sent">
         <span class="notif-pill">✓ WhatsApp enviado</span>
         <span class="notif-pill">✓ Correo enviado</span>
       </div>
-      <button class="btn-cancel" onclick="mostrarCancelar()">Cancelar mi cita</button>
-      <button class="btn-ghost" style="margin-top:8px;" onclick="reiniciar()">Agendar otra cita</button>
+      <div class="cancel-link-box">
+        ¿Necesitas cancelar? Recibirás un enlace en tu WhatsApp para cancelar fácilmente, o puedes hacerlo aquí abajo.
+      </div>
+      <button class="btn-cancel" onclick="mostrarCancelar()" style="margin-top:1rem;">Cancelar mi cita</button>
+      <button class="btn-secondary" onclick="reiniciar()">Agendar otra cita</button>
     </div>
   </div>
 
-  <!-- CANCELAR CITA (cliente) -->
+  <!-- CANCELAR -->
   <div class="step" id="step7">
     <div class="cancel-screen">
       <div class="cancel-icon">❌</div>
       <h2 class="cancel-title">Cancelar cita</h2>
-      <p class="cancel-sub">¿Estás segura de que deseas cancelar tu cita? Se notificará al salón automáticamente.</p>
+      <p class="cancel-sub">¿Estás segura de que deseas cancelar? Se notificará al salón automáticamente.</p>
       <div class="cancel-detail" id="cancelDetail"></div>
       <button class="btn-cancel" onclick="ejecutarCancelacion()">Sí, cancelar mi cita</button>
-      <button class="btn-ghost" onclick="goStep(6)" style="margin-top:8px;">← Volver</button>
+      <button class="btn-secondary" onclick="goStep(6)">← Volver</button>
     </div>
   </div>
 
-  <!-- CANCELADA CONFIRMACIÓN -->
+  <!-- CANCELADA -->
   <div class="step" id="step8">
     <div class="success-wrap">
       <div class="cancel-icon">🗓️</div>
-      <h2 class="cancel-title" style="color:var(--muted);">Cita cancelada</h2>
+      <h2 class="step-title" style="color:var(--muted);">Cita cancelada</h2>
       <p class="success-sub">Tu cita ha sido cancelada. Puedes reagendar cuando quieras.</p>
       <button class="btn-primary" onclick="reiniciar()" style="margin-top:1rem;">Agendar nueva cita</button>
     </div>
@@ -281,146 +304,45 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getDatabase, ref, push, get, update } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyC4TtVL7HM5ZQUGnqQZMCrTz_xtipUmU1Y",
-  authDomain: "visos-keratin.firebaseapp.com",
-  databaseURL: "https://visos-keratin-default-rtdb.firebaseio.com",
-  projectId: "visos-keratin",
-  storageBucket: "visos-keratin.firebasestorage.app",
-  messagingSenderId: "793810207482",
-  appId: "1:793810207482:web:80f771072a782b085c3f43"
-};
-
+const firebaseConfig={apiKey:"AIzaSyC4TtVL7HM5ZQUGnqQZMCrTz_xtipUmU1Y",authDomain:"visos-keratin.firebaseapp.com",databaseURL:"https://visos-keratin-default-rtdb.firebaseio.com",projectId:"visos-keratin",storageBucket:"visos-keratin.firebasestorage.app",messagingSenderId:"793810207482",appId:"1:793810207482:web:80f771072a782b085c3f43"};
 let db=null;
 try{const app=initializeApp(firebaseConfig);db=getDatabase(app);}catch(e){console.warn("Firebase:",e.message);}
-
-window._saveToFirebase=function(cita){
-  if(!db)return null;
-  return push(ref(db,'citas'),cita).then(r=>{window._lastKey=r.key;return r.key;}).catch(()=>null);
-};
-window._getTakenSlots=function(fecha,estilista,duracionNueva){
-  if(!db)return Promise.resolve([]);
-  return get(ref(db,'citas')).then(snap=>{
-    if(!snap.exists())return[];
-    // Citas activas de esa estilista en esa fecha
-    const citasDelDia=Object.values(snap.val()).filter(c=>
-      c.fecha===fecha && c.estilista===estilista && c.estado!=='cancelada'
-    );
-    // Convierte "HH:MM" a minutos desde medianoche
-    function toMin(t){const[h,m]=t.split(':').map(Number);return h*60+m;}
-    // Un slot candidato está bloqueado si:
-    // su franja [slotStart, slotStart+duracionNueva) se solapa con
-    // alguna cita existente [citaStart, citaFin)
-    // Solape: slotStart < citaFin AND slotStart+durNueva > citaStart
-    return function(slotsCandidate){
-      return slotsCandidate.filter(slot=>{
-        const sStart=toMin(slot);
-        const sEnd=sStart+duracionNueva;
-        return citasDelDia.some(c=>{
-          const cStart=toMin(c.horaInicio);
-          const cEnd=toMin(c.horaFin);
-          return sStart < cEnd && sEnd > cStart;
-        });
-      });
-    };
-  }).catch(()=>()=>[]);
-};
-window._cancelarCita=function(key){
-  if(!db||!key)return Promise.resolve();
-  return update(ref(db,'citas/'+key),{estado:'cancelada'});
-};
+window._saveToFirebase=function(cita){if(!db)return Promise.resolve(null);return push(ref(db,'citas'),cita).then(r=>{window._lastKey=r.key;return r.key;}).catch(()=>null);};
+window._getTakenSlots=function(fecha,estilista,durNueva){if(!db)return Promise.resolve(()=>[]);return get(ref(db,'citas')).then(snap=>{if(!snap.exists())return()=>[];const citasDelDia=Object.values(snap.val()).filter(c=>c.fecha===fecha&&c.estilista===estilista&&c.estado!=='cancelada');function toMin(t){const[h,m]=t.split(':').map(Number);return h*60+m;}return function(slots){return slots.filter(slot=>{const sS=toMin(slot),sE=sS+durNueva;return citasDelDia.some(c=>{const cS=toMin(c.horaInicio),cE=toMin(c.horaFin);return sS<cE&&sE>cS;});});};}).catch(()=>()=>[]);};
+window._cancelarCita=function(key){if(!db||!key)return Promise.resolve();return update(ref(db,'citas/'+key),{estado:'cancelada'});};
 </script>
 
 <script>
-// ── Festivos Colombia 2025-2026 ──
-const FESTIVOS=new Set([
-  '2025-01-01','2025-01-06','2025-03-24','2025-04-17','2025-04-18',
-  '2025-05-01','2025-06-02','2025-06-23','2025-06-30','2025-07-20',
-  '2025-08-07','2025-08-18','2025-10-13','2025-11-03','2025-11-17',
-  '2025-12-08','2025-12-25',
-  '2026-01-01','2026-01-12','2026-03-23','2026-04-02','2026-04-03',
-  '2026-05-01','2026-05-18','2026-06-08','2026-06-15','2026-06-29',
-  '2026-07-20','2026-08-07','2026-08-17','2026-10-12','2026-11-02',
-  '2026-11-16','2026-12-08','2026-12-25'
-]);
+const FESTIVOS=new Set(['2025-01-01','2025-01-06','2025-03-24','2025-04-17','2025-04-18','2025-05-01','2025-06-02','2025-06-23','2025-06-30','2025-07-20','2025-08-07','2025-08-18','2025-10-13','2025-11-03','2025-11-17','2025-12-08','2025-12-25','2026-01-01','2026-01-12','2026-03-23','2026-04-02','2026-04-03','2026-05-01','2026-05-18','2026-06-08','2026-06-15','2026-06-29','2026-07-20','2026-08-07','2026-08-17','2026-10-12','2026-11-02','2026-11-16','2026-12-08','2026-12-25']);
+const SERVICES=[{id:'corte',name:'Corte de cabello',mins:45},{id:'tinte',name:'Tinte / color',mins:120},{id:'brush',name:'Peinado / brushing',mins:60},{id:'mani',name:'Manicure / pedicure',mins:75},{id:'trat',name:'Tratamiento capilar',mins:90},{id:'cejas',name:'Cejas / depilación',mins:30},{id:'hidra',name:'Hidratación',mins:60},{id:'repo',name:'Repo',mins:90},{id:'pisado',name:'Pisado',mins:60},{id:'plancha',name:'Planchado',mins:45},{id:'kera',name:'Keratina',mins:150}];
+const STAFF=[{id:'ana',name:'Ana',role:'Dueña',initials:'AN'},{id:'lucia',name:'Lucía',role:'Estilista',initials:'LU'},{id:'camila',name:'Camila',role:'Estilista',initials:'CA'}];
+const MESES=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const DIAS=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+let selSvcs=new Set(),sel={staff:null,fecha:null,hora:null};
+let calYear=new Date().getFullYear(),calMonth=new Date().getMonth();
+window._lastKey=null;window._lastCita=null;
 
-const SERVICES=[
-  {id:'corte',name:'Corte de cabello',mins:45},
-  {id:'tinte',name:'Tinte / color',mins:120},
-  {id:'brush',name:'Peinado / brushing',mins:60},
-  {id:'mani',name:'Manicure / pedicure',mins:75},
-  {id:'trat',name:'Tratamiento capilar',mins:90},
-  {id:'cejas',name:'Cejas / depilación',mins:30},
-  {id:'hidra',name:'Hidratación',mins:60},
-  {id:'repo',name:'Repo',mins:90},
-  {id:'pisado',name:'Pisado',mins:60},
-  {id:'plancha',name:'Planchado',mins:45},
-  {id:'kera',name:'Keratina',mins:150},
-];
-const STAFF=[
-  {id:'ana',name:'Ana',role:'Dueña',initials:'AN'},
-  {id:'lucia',name:'Lucía',role:'Estilista',initials:'LU'},
-  {id:'camila',name:'Camila',role:'Estilista',initials:'CA'},
-];
-const MESES_ES=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-const DIAS_ES=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+document.getElementById('servicesList').innerHTML=SERVICES.map(s=>`<div class="svc-item" id="sv-${s.id}" onclick="toggleSvc('${s.id}')"><div class="svc-left"><div class="svc-check" id="chk-${s.id}">✓</div><div><div class="svc-name">${s.name}</div><div class="svc-time">${s.mins} min</div></div></div></div>`).join('');
+document.getElementById('staffList').innerHTML=STAFF.map(s=>`<div class="staff-item" id="stf-${s.id}" onclick="selStaff('${s.id}')"><div class="staff-avatar">${s.initials}</div><div class="staff-name">${s.name}</div><div class="staff-role">${s.role}</div></div>`).join('');
 
-let selSvcs=new Set();
-let sel={staff:null,fecha:null,hora:null};
-let calYear=new Date().getFullYear(), calMonth=new Date().getMonth();
-window._lastKey=null;
-
-// Build services
-document.getElementById('servicesList').innerHTML=SERVICES.map(s=>`
-  <div class="svc-item" id="sv-${s.id}" onclick="toggleSvc('${s.id}')">
-    <div class="svc-left">
-      <div class="svc-check" id="chk-${s.id}">✓</div>
-      <div class="svc-info"><span class="svc-name">${s.name}</span><span class="svc-time">${s.mins} min</span></div>
-    </div>
-  </div>`).join('');
-
-// Build staff
-document.getElementById('staffList').innerHTML=STAFF.map(s=>`
-  <div class="staff-item" id="stf-${s.id}" onclick="selStaff('${s.id}')">
-    <div class="staff-avatar">${s.initials}</div>
-    <div class="staff-name">${s.name}</div>
-    <div class="staff-role">${s.role}</div>
-  </div>`).join('');
-
-function toggleSvc(id){
-  selSvcs.has(id)?selSvcs.delete(id):selSvcs.add(id);
-  document.getElementById('sv-'+id).classList.toggle('selected',selSvcs.has(id));
-  updateSelSummary();
-}
-function updateSelSummary(){
-  const el=document.getElementById('selSummary');
-  if(selSvcs.size===0){el.classList.remove('show');return;}
-  const svcs=SERVICES.filter(s=>selSvcs.has(s.id));
-  const mins=svcs.reduce((a,s)=>a+s.mins,0);
-  el.classList.add('show');
-  el.innerHTML=`✨ <strong>${svcs.length} servicio${svcs.length>1?'s':''}</strong> — ${mins} min en total`;
-}
+function toggleSvc(id){selSvcs.has(id)?selSvcs.delete(id):selSvcs.add(id);document.getElementById('sv-'+id).classList.toggle('selected',selSvcs.has(id));updateSelSummary();}
+function updateSelSummary(){const el=document.getElementById('selSummary');if(selSvcs.size===0){el.classList.remove('show');return;}const svcs=SERVICES.filter(s=>selSvcs.has(s.id));const mins=svcs.reduce((a,s)=>a+s.mins,0);el.classList.add('show');el.innerHTML=`✔ ${svcs.length} servicio${svcs.length>1?'s':''} seleccionado${svcs.length>1?'s':''} — ${mins} min en total`;}
 function selStaff(id){sel.staff=id;document.querySelectorAll('.staff-item').forEach(b=>b.classList.remove('selected'));document.getElementById('stf-'+id).classList.add('selected');}
 function totalMins(){return SERVICES.filter(s=>selSvcs.has(s.id)).reduce((a,s)=>a+s.mins,0)||60;}
 
-// ── Calendario ──
 function buildCal(){
   const hoy=new Date();hoy.setHours(0,0,0,0);
-  const minDate=new Date(hoy);minDate.setDate(hoy.getDate()+1); // mínimo 24h
-  document.getElementById('calTitle').textContent=MESES_ES[calMonth]+' '+calYear;
+  const minDate=new Date(hoy);minDate.setDate(hoy.getDate()+1);
+  document.getElementById('calTitle').textContent=MESES[calMonth]+' '+calYear;
   const firstDay=new Date(calYear,calMonth,1).getDay();
   const daysInMonth=new Date(calYear,calMonth+1,0).getDate();
   let html='';
-  for(let i=0;i<firstDay;i++) html+=`<div class="cal-day disabled"></div>`;
+  for(let i=0;i<firstDay;i++)html+=`<div class="cal-day disabled"></div>`;
   for(let d=1;d<=daysInMonth;d++){
     const date=new Date(calYear,calMonth,d);date.setHours(0,0,0,0);
     const iso=`${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    const esFestivo=FESTIVOS.has(iso);
-    const esDomingo=date.getDay()===0;
-    const esPasado=date<minDate;
-    const esHoy=date.getTime()===hoy.getTime();
-    const esSelec=sel.fecha&&sel.fecha.toDateString()===date.toDateString();
+    const esFestivo=FESTIVOS.has(iso),esDomingo=date.getDay()===0,esPasado=date<minDate;
+    const esHoy=date.getTime()===hoy.getTime(),esSelec=sel.fecha&&sel.fecha.toDateString()===date.toDateString();
     let cls='cal-day';
     if(esDomingo)cls+=' domingo';
     else if(esFestivo)cls+=' festivo';
@@ -428,76 +350,33 @@ function buildCal(){
     if(esHoy)cls+=' today';
     if(esSelec)cls+=' selected';
     const onclick=(esPasado||esDomingo)?'':` onclick="selFecha(${calYear},${calMonth},${d})"`;
-    const title=esFestivo?` title="Festivo"`:'';
-    html+=`<div class="${cls}"${onclick}${title}>${d}</div>`;
+    html+=`<div class="${cls}"${onclick}${esFestivo?' title="Festivo"':''}>${d}</div>`;
   }
   document.getElementById('calGrid').innerHTML=html;
 }
-
-function cambiarMes(dir){
-  calMonth+=dir;
-  if(calMonth>11){calMonth=0;calYear++;}
-  if(calMonth<0){calMonth=11;calYear--;}
-  buildCal();
-}
-
-function selFecha(y,m,d){
-  sel.fecha=new Date(y,m,d);sel.hora=null;
-  buildCal();
-  buildSlots(sel.fecha);
-  document.getElementById('slotsWrap').style.display='block';
-}
+function cambiarMes(dir){calMonth+=dir;if(calMonth>11){calMonth=0;calYear++;}if(calMonth<0){calMonth=11;calYear--;}buildCal();}
+function selFecha(y,m,d){sel.fecha=new Date(y,m,d);sel.hora=null;buildCal();buildSlots(sel.fecha);document.getElementById('slotsWrap').style.display='block';}
 
 function buildSlots(date){
-  const mins=totalMins();
-  const dow=date.getDay();
-  const startH=dow===6?7:8,endH=17;
-  const iso=`${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
-  const esFestivo=FESTIVOS.has(iso);
+  const mins=totalMins(),dow=date.getDay(),startH=dow===6?7:8,endH=17;
   const svcsNombres=SERVICES.filter(s=>selSvcs.has(s.id)).map(s=>s.name).join(', ')||'—';
-  document.getElementById('timeInfo').innerHTML=
-    `📅 <strong>${DIAS_ES[dow]} ${date.getDate()} de ${MESES_ES[date.getMonth()]}</strong>${esFestivo?' 🎉 Festivo':''}<br>
-     Horario: ${startH}:00 – ${endH}:00 · Duración: <span style="color:#d8b4fe;">${mins} min</span><br>
-     <span style="color:var(--text);">${svcsNombres}</span>`;
+  const iso=`${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+  document.getElementById('timeInfo').innerHTML=`📅 <strong>${DIAS[dow]} ${date.getDate()} de ${MESES[date.getMonth()]}</strong>${FESTIVOS.has(iso)?' 🎉':''} · Horario: ${startH}:00–${endH}:00 · <strong>${mins} min</strong><br><span style="color:var(--muted);">${svcsNombres}</span>`;
   const slots=[];
-  for(let h=startH;h<endH;h++)
-    for(let m=0;m<60;m+=30){
-      if(h*60+m+mins<=endH*60) slots.push(String(h).padStart(2,'0')+':'+String(m).padStart(2,'0'));
-    }
+  for(let h=startH;h<endH;h++)for(let m=0;m<60;m+=30){if(h*60+m+mins<=endH*60)slots.push(String(h).padStart(2,'0')+':'+String(m).padStart(2,'0'));}
   const grid=document.getElementById('slotsGrid');
   if(slots.length===0){grid.innerHTML=`<div class="no-slots">Sin horas disponibles para la duración seleccionada.</div>`;return;}
-  // Render todos los slots primero
   grid.innerHTML=slots.map(s=>`<div class="slot" id="sl-${s.replace(':','-')}" onclick="selSlot('${s}')">${s}</div>`).join('');
-  // Luego bloquear los que se solapan con citas existentes
-  const fechaStr=fechaTexto(date);
-  const stf=STAFF.find(s=>s.id===sel.staff);
-  if(window._getTakenSlots){
-    window._getTakenSlots(fechaStr, stf?stf.name:'', mins).then(filtrarSolapados=>{
-      // filtrarSolapados es una función que recibe los slots candidatos y devuelve los bloqueados
-      const bloqueados = typeof filtrarSolapados === 'function'
-        ? filtrarSolapados(slots)
-        : filtrarSolapados; // compatibilidad si fuera array
-      bloqueados.forEach(t=>{
-        const el=document.getElementById('sl-'+t.replace(':','-'));
-        if(el){
-          el.classList.add('taken');
-          el.onclick=null;
-          if(sel.hora===t){sel.hora=null;} // limpiar si ya estaba seleccionado
-        }
-      });
-    });
-  }
+  const fechaStr=fechaTexto(date),stf=STAFF.find(s=>s.id===sel.staff);
+  if(window._getTakenSlots){window._getTakenSlots(fechaStr,stf?stf.name:'',mins).then(filtrar=>{const bloqueados=typeof filtrar==='function'?filtrar(slots):filtrar;bloqueados.forEach(t=>{const el=document.getElementById('sl-'+t.replace(':','-'));if(el){el.classList.add('taken');el.onclick=null;if(sel.hora===t)sel.hora=null;}});});}
 }
 
 function selSlot(t){sel.hora=t;document.querySelectorAll('.slot').forEach(b=>b.classList.remove('selected'));const el=document.getElementById('sl-'+t.replace(':','-'));if(el)el.classList.add('selected');}
 function addMins(t,m){const[h,mn]=t.split(':').map(Number);const tot=h*60+mn+m;return String(Math.floor(tot/60)).padStart(2,'0')+':'+String(tot%60).padStart(2,'0');}
-function fechaTexto(d){return DIAS_ES[d.getDay()]+' '+d.getDate()+'/'+(d.getMonth()+1)+'/'+d.getFullYear();}
+function fechaTexto(d){return DIAS[d.getDay()]+' '+d.getDate()+'/'+(d.getMonth()+1)+'/'+d.getFullYear();}
 
 function fillSummary(){
-  const svcs=SERVICES.filter(s=>selSvcs.has(s.id));
-  const stf=STAFF.find(s=>s.id===sel.staff);
-  const mins=totalMins();
-  const fin=addMins(sel.hora,mins);
+  const svcs=SERVICES.filter(s=>selSvcs.has(s.id)),stf=STAFF.find(s=>s.id===sel.staff),mins=totalMins(),fin=addMins(sel.hora,mins);
   document.getElementById('s-nombre').textContent=document.getElementById('nombre').value;
   document.getElementById('s-tel').textContent=document.getElementById('telefono').value;
   document.getElementById('s-servicio').textContent=svcs.map(s=>s.name).join(' + ');
@@ -514,66 +393,41 @@ function goStep(n){
   if(n===2&&!document.getElementById('correo').value.trim()){alert('Por favor ingresa tu correo electrónico.');return;}
   if(n===3&&selSvcs.size===0){alert('Selecciona al menos un servicio.');return;}
   if(n===4&&!sel.staff){alert('Selecciona una estilista.');return;}
-  if(n===5&&!sel.fecha){alert('Selecciona una fecha.');return;}
+  if(n===5&&!sel.fecha){alert('Selecciona una fecha en el calendario.');return;}
   if(n===5&&!sel.hora){alert('Selecciona una hora disponible.');return;}
-  if(n===4){buildCal();}
+  if(n===4)buildCal();
   if(n===5)fillSummary();
   document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
   document.getElementById('step'+n).classList.add('active');
-  for(let i=1;i<=5;i++){
-    const c=document.getElementById('pc'+i);c.classList.remove('active','done');
-    if(i<n)c.classList.add('done');else if(i===n)c.classList.add('active');
-    if(i<5)document.getElementById('pl'+i).classList.toggle('done',i<n);
-  }
+  for(let i=1;i<=5;i++){const c=document.getElementById('pc'+i);c.classList.remove('active','done');if(i<n){c.classList.add('done');c.textContent='✓';}else if(i===n){c.classList.add('active');c.textContent=i;}else{c.textContent=i;}if(i<5)document.getElementById('pl'+i).classList.toggle('done',i<n);}
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
 function confirmar(){
-  const svcs=SERVICES.filter(s=>selSvcs.has(s.id));
-  const stf=STAFF.find(s=>s.id===sel.staff);
-  const mins=totalMins();
-  const fin=addMins(sel.hora,mins);
-  const nombre=document.getElementById('nombre').value;
-  const telefono=document.getElementById('telefono').value;
-  const correo=document.getElementById('correo').value;
-  const ft=fechaTexto(sel.fecha);
-  const btn=document.getElementById('btnConfirmar');
-  btn.textContent='Guardando...';btn.disabled=true;
+  const svcs=SERVICES.filter(s=>selSvcs.has(s.id)),stf=STAFF.find(s=>s.id===sel.staff),mins=totalMins(),fin=addMins(sel.hora,mins);
+  const nombre=document.getElementById('nombre').value,telefono=document.getElementById('telefono').value,correo=document.getElementById('correo').value,ft=fechaTexto(sel.fecha);
+  const btn=document.getElementById('btnConfirmar');btn.textContent='Guardando...';btn.disabled=true;
   const cita={nombre,telefono,correo,servicios:svcs.map(s=>s.name).join(', '),estilista:stf.name,fecha:ft,horaInicio:sel.hora,horaFin:fin,duracion:mins,estado:'pendiente',creadoEn:new Date().toISOString()};
   window._lastCita=cita;
-  if(window._saveToFirebase) window._saveToFirebase(cita).catch(()=>{});
-  document.getElementById('successDetail').innerHTML=`
-    <p><strong>${nombre}</strong> · ${telefono}</p>
-    <p>✨ ${svcs.map(s=>s.name).join(' + ')}</p>
-    <p>Con <strong>${stf.name}</strong> · ${ft}</p>
-    <p>${sel.hora} – ${fin} (${mins} min)</p>`;
+  if(window._saveToFirebase)window._saveToFirebase(cita).catch(()=>{});
+  // Notificaciones Twilio
+  try{fetch('https://visos-keratin-server-production.up.railway.app/agendar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(cita)}).catch(e=>console.warn('Notif:',e));}catch(e){}
+  document.getElementById('successDetail').innerHTML=`<p><strong>${nombre}</strong> · ${telefono}</p><p>✂️ ${svcs.map(s=>s.name).join(' + ')}</p><p>Con <strong>${stf.name}</strong> · ${ft}</p><p>${sel.hora} – ${fin} (${mins} min)</p>`;
   document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
   document.getElementById('step6').classList.add('active');
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
 function mostrarCancelar(){
-  const c=window._lastCita;
-  if(!c){alert('No hay cita activa para cancelar.');return;}
-  document.getElementById('cancelDetail').innerHTML=`
-    <p><strong>${c.nombre}</strong></p>
-    <p>${c.servicios}</p>
-    <p>${c.fecha} · ${c.horaInicio} – ${c.horaFin}</p>`;
+  const c=window._lastCita;if(!c){alert('No hay cita activa para cancelar.');return;}
+  document.getElementById('cancelDetail').innerHTML=`<p><strong>${c.nombre}</strong></p><p>${c.servicios}</p><p>${c.fecha} · ${c.horaInicio} – ${c.horaFin}</p>`;
   document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
   document.getElementById('step7').classList.add('active');
 }
 
 function ejecutarCancelacion(){
-  if(window._cancelarCita&&window._lastKey) window._cancelarCita(window._lastKey).catch(()=>{});
-  // Notificar cancelación por WhatsApp
-  if(window._lastCita){
-    try{
-      fetch('https://visos-keratin-server-production.up.railway.app/cancelar',{
-        method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify(window._lastCita)
-      }).catch(e=>console.warn('Cancelación notif:',e));
-    }catch(e){}
-  }
+  if(window._cancelarCita&&window._lastKey)window._cancelarCita(window._lastKey).catch(()=>{});
+  if(window._lastCita){try{fetch('https://visos-keratin-server-production.up.railway.app/cancelar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(window._lastCita)}).catch(()=>{});}catch(e){}}
   document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
   document.getElementById('step8').classList.add('active');
   window._lastCita=null;window._lastKey=null;
@@ -582,14 +436,12 @@ function ejecutarCancelacion(){
 function reiniciar(){
   selSvcs=new Set();sel={staff:null,fecha:null,hora:null};window._lastCita=null;window._lastKey=null;
   ['nombre','telefono','correo'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('btnConfirmar').textContent='Agendar cita';
-  document.getElementById('btnConfirmar').disabled=false;
+  document.getElementById('btnConfirmar').textContent='Agendar cita';document.getElementById('btnConfirmar').disabled=false;
   document.querySelectorAll('.svc-item,.staff-item,.slot').forEach(e=>e.classList.remove('selected'));
   document.getElementById('selSummary').classList.remove('show');
   document.getElementById('slotsWrap').style.display='none';
   goStep(1);
 }
-
 buildCal();
 </script>
 </body>
