@@ -314,6 +314,11 @@ window._getDisponibilidad=function(){
   if(!db)return Promise.resolve(null);
   return get(ref(db,'config/disponibilidad')).then(snap=>snap.exists()?snap.val():null).catch(()=>null);
 };
+window._getCita=function(key){
+  if(!db)return Promise.resolve(null);
+  return get(ref(db,'citas/'+key)).then(snap=>snap.exists()?snap.val():null).catch(()=>null);
+};
+window._fbDb=true; // Flag para saber que Firebase está listo
 </script>
 
 <script>
@@ -491,50 +496,47 @@ function reiniciar(){
 buildCal();
 
 // ── Cancelación desde enlace WhatsApp ─────────────────────────
-(function(){
+function iniciarCancelacionDesdeEnlace(){
   const params=new URLSearchParams(window.location.search);
   const key=params.get('cancelar');
   if(!key) return;
 
-  // Mostrar pantalla de cancelación directa
-  function mostrarCancelacionDirecta(cita, key){
-    // Verificar si faltan más de 5 horas
-    const ahora=new Date();
-    const DIAS_MAP={Dom:0,Lun:1,Mar:2,'Mié':3,Jue:4,Vie:5,'Sáb':6};
+  document.querySelector('.progress-wrap').style.display='none';
+  document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
 
-    // Parsear fecha "Lun 29/7/2026"
-    let puedeCancel=true;
-    try{
-      const partes=cita.fecha.split(' ');
-      const [d,m,y]=partes[1].split('/').map(Number);
-      const [h,mn]=cita.horaInicio.split(':').map(Number);
-      const fechaCita=new Date(y,m-1,d,h,mn,0,0);
-      const diffHoras=(fechaCita-ahora)/(1000*60*60);
-      puedeCancel=diffHoras>=5;
-    }catch(e){}
+  // Buscar cita en Firebase usando la función ya disponible
+  if(!window._fbDb){
+    mostrarErrorCancelacion('No se pudo conectar. Intenta de nuevo.');
+    return;
+  }
 
-    // Ocultar progreso y mostrar pantalla de cancelación
-    document.querySelector('.progress-wrap').style.display='none';
-    document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
-
-    if(!puedeCancel){
-      // Mostrar mensaje de tiempo expirado
-      document.getElementById('step7').innerHTML=`
-        <div class="cancel-screen">
-          <div class="cancel-icon">⏰</div>
-          <h2 class="cancel-title" style="color:var(--muted);">Cancelación no disponible</h2>
-          <p class="cancel-sub">Las cancelaciones deben realizarse con <strong>mínimo 5 horas de anticipación.</strong><br>Si necesitas ayuda contáctanos directamente.</p>
-          <div class="cancel-detail">
-            <p><strong>${cita.nombre}</strong></p>
-            <p>${cita.servicios||'—'}</p>
-            <p>${cita.fecha} · ${cita.horaInicio}</p>
-          </div>
-        </div>`;
-      document.getElementById('step7').classList.add('active');
+  // Usar get desde el db ya inicializado
+  window._getCita(key).then(function(cita){
+    if(!cita){
+      mostrarErrorCancelacion('Cita no encontrada o ya fue cancelada.');
       return;
     }
+    // Verificar 5 horas mínimas
+    try{
+      const partes=cita.fecha.split(' ');
+      const[d,m,y]=partes[1].split('/').map(Number);
+      const[h,mn]=cita.horaInicio.split(':').map(Number);
+      const fechaCita=new Date(y,m-1,d,h,mn,0,0);
+      const diffHoras=(fechaCita-new Date())/(1000*60*60);
+      if(diffHoras<5){
+        document.getElementById('step7').innerHTML=`
+          <div class="cancel-screen">
+            <div class="cancel-icon">⏰</div>
+            <h2 class="cancel-title" style="color:var(--muted);">Cancelación no disponible</h2>
+            <p class="cancel-sub">Las cancelaciones deben realizarse con <strong>mínimo 5 horas de anticipación.</strong><br>Contáctanos directamente si necesitas ayuda.</p>
+            <div class="cancel-detail"><p><strong>${cita.nombre}</strong></p><p>${cita.servicios||'—'}</p><p>${cita.fecha} · ${cita.horaInicio}</p></div>
+          </div>`;
+        document.getElementById('step7').classList.add('active');
+        return;
+      }
+    }catch(e){}
 
-    // Mostrar confirmación de cancelación
+    // Mostrar pantalla de cancelación
     window._lastKey=key;
     window._lastCita=cita;
     document.getElementById('cancelDetail').innerHTML=`
@@ -542,37 +544,21 @@ buildCal();
       <p>${cita.servicios||'—'}</p>
       <p>${cita.fecha} · ${cita.horaInicio} – ${cita.horaFin}</p>`;
     document.getElementById('step7').classList.add('active');
-  }
+  }).catch(function(){
+    mostrarErrorCancelacion('Error al cargar la cita. Intenta de nuevo.');
+  });
+}
 
-  // Cargar cita desde Firebase
-  if(window._getTakenSlots){
-    // Usamos get directamente
-    import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js').then(()=>{
-      import('https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js').then(({getDatabase,ref,get})=>{
-        try{
-          const app=window._fbApp;
-          if(!app)return;
-          const db=getDatabase(app);
-          get(ref(db,'citas/'+key)).then(snap=>{
-            if(snap.exists()){
-              mostrarCancelacionDirecta(snap.val(), key);
-            } else {
-              document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
-              document.getElementById('step7').innerHTML=`
-                <div class="cancel-screen">
-                  <div class="cancel-icon">🔍</div>
-                  <h2 class="cancel-title" style="color:var(--muted);">Cita no encontrada</h2>
-                  <p class="cancel-sub">Es posible que esta cita ya fue cancelada o el enlace expiró.</p>
-                  <button class="btn-primary" onclick="reiniciar()">Agendar nueva cita</button>
-                </div>`;
-              document.getElementById('step7').classList.add('active');
-            }
-          });
-        }catch(e){console.warn('Cancel link error:',e);}
-      });
-    });
-  }
-})();
+function mostrarErrorCancelacion(msg){
+  document.getElementById('step7').innerHTML=`
+    <div class="cancel-screen">
+      <div class="cancel-icon">🔍</div>
+      <h2 class="cancel-title" style="color:var(--muted);">${msg}</h2>
+      <button class="btn-primary" onclick="reiniciar()" style="margin-top:1rem;">Agendar nueva cita</button>
+    </div>`;
+  document.getElementById('step7').classList.add('active');
+}
+
 </script>
 </body>
 </html>
