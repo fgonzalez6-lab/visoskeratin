@@ -306,10 +306,14 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/fireba
 import { getDatabase, ref, push, get, update } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 const firebaseConfig={apiKey:"AIzaSyC4TtVL7HM5ZQUGnqQZMCrTz_xtipUmU1Y",authDomain:"visos-keratin.firebaseapp.com",databaseURL:"https://visos-keratin-default-rtdb.firebaseio.com",projectId:"visos-keratin",storageBucket:"visos-keratin.firebasestorage.app",messagingSenderId:"793810207482",appId:"1:793810207482:web:80f771072a782b085c3f43"};
 let db=null;
-try{const app=initializeApp(firebaseConfig);db=getDatabase(app);}catch(e){console.warn("Firebase:",e.message);}
+try{const app=initializeApp(firebaseConfig);db=getDatabase(app);window._fbApp=app;}catch(e){console.warn("Firebase:",e.message);}
 window._saveToFirebase=function(cita){if(!db)return Promise.resolve(null);return push(ref(db,'citas'),cita).then(r=>{window._lastKey=r.key;return r.key;}).catch(()=>null);};
 window._getTakenSlots=function(fecha,estilista,durNueva){if(!db)return Promise.resolve(()=>[]);return get(ref(db,'citas')).then(snap=>{if(!snap.exists())return()=>[];const citasDelDia=Object.values(snap.val()).filter(c=>c.fecha===fecha&&c.estilista===estilista&&c.estado!=='cancelada');function toMin(t){const[h,m]=t.split(':').map(Number);return h*60+m;}return function(slots){return slots.filter(slot=>{const sS=toMin(slot),sE=sS+durNueva;return citasDelDia.some(c=>{const cS=toMin(c.horaInicio),cE=toMin(c.horaFin);return sS<cE&&sE>cS;});});};}).catch(()=>()=>[]);};
 window._cancelarCita=function(key){if(!db||!key)return Promise.resolve();return update(ref(db,'citas/'+key),{estado:'cancelada'});};
+window._getDisponibilidad=function(){
+  if(!db)return Promise.resolve(null);
+  return get(ref(db,'config/disponibilidad')).then(snap=>snap.exists()?snap.val():null).catch(()=>null);
+};
 </script>
 
 <script>
@@ -330,9 +334,27 @@ function updateSelSummary(){const el=document.getElementById('selSummary');if(se
 function selStaff(id){sel.staff=id;document.querySelectorAll('.staff-item').forEach(b=>b.classList.remove('selected'));document.getElementById('stf-'+id).classList.add('selected');}
 function totalMins(){return SERVICES.filter(s=>selSvcs.has(s.id)).reduce((a,s)=>a+s.mins,0)||60;}
 
+let _disponConfig=null;
+// Cargar disponibilidad al inicio
+if(window._getDisponibilidad){
+  window._getDisponibilidad().then(cfg=>{if(cfg)_disponConfig=cfg;});
+}
+
+function isDiaDisponible(dow){
+  if(!_disponConfig||!_disponConfig.dias)return dow!==0; // default: todos menos domingo
+  const MAP={1:'lun',2:'mar',3:'mie',4:'jue',5:'vie',6:'sab'};
+  const key=MAP[dow];
+  return key?_disponConfig.dias[key]!==false:false;
+}
+function isFranjaDisponible(hora){
+  if(!_disponConfig||!_disponConfig.franjas)return true;
+  return _disponConfig.franjas[hora]!==false;
+}
+
 function buildCal(){
-  const hoy=new Date();hoy.setHours(0,0,0,0);
-  const minDate=new Date(hoy);minDate.setDate(hoy.getDate()+1);
+  const ahora=new Date();
+  // Mínimo 24 horas desde este momento exacto
+  const minDate=new Date(ahora.getTime() + 24*60*60*1000);
   document.getElementById('calTitle').textContent=MESES[calMonth]+' '+calYear;
   const firstDay=new Date(calYear,calMonth,1).getDay();
   const daysInMonth=new Date(calYear,calMonth+1,0).getDate();
@@ -344,12 +366,12 @@ function buildCal(){
     const esFestivo=FESTIVOS.has(iso),esDomingo=date.getDay()===0,esPasado=date<minDate;
     const esHoy=date.getTime()===hoy.getTime(),esSelec=sel.fecha&&sel.fecha.toDateString()===date.toDateString();
     let cls='cal-day';
-    if(esDomingo)cls+=' domingo';
+    if(esDomingo||esBloqueado)cls+=' domingo';
     else if(esFestivo)cls+=' festivo';
-    if(esPasado||esDomingo)cls+=' past';
+    if(esPasado||esDomingo||esBloqueado)cls+=' past';
     if(esHoy)cls+=' today';
     if(esSelec)cls+=' selected';
-    const onclick=(esPasado||esDomingo)?'':` onclick="selFecha(${calYear},${calMonth},${d})"`;
+    const onclick=(esPasado||esDomingo||esBloqueado)?'':` onclick="selFecha(${calYear},${calMonth},${d})"`;
     html+=`<div class="${cls}"${onclick}${esFestivo?' title="Festivo"':''}>${d}</div>`;
   }
   document.getElementById('calGrid').innerHTML=html;
@@ -359,6 +381,7 @@ function selFecha(y,m,d){sel.fecha=new Date(y,m,d);sel.hora=null;buildCal();buil
 
 function buildSlots(date){
   const mins=totalMins(),dow=date.getDay(),startH=dow===6?7:8,endH=17;
+  const ahora=new Date();
   const svcsNombres=SERVICES.filter(s=>selSvcs.has(s.id)).map(s=>s.name).join(', ')||'—';
   const iso=`${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
   document.getElementById('timeInfo').innerHTML=`📅 <strong>${DIAS[dow]} ${date.getDate()} de ${MESES[date.getMonth()]}</strong>${FESTIVOS.has(iso)?' 🎉':''} · Horario: ${startH}:00–${endH}:00 · <strong>${mins} min</strong><br><span style="color:var(--muted);">${svcsNombres}</span>`;
@@ -366,7 +389,16 @@ function buildSlots(date){
   for(let h=startH;h<endH;h++)for(let m=0;m<60;m+=30){if(h*60+m+mins<=endH*60)slots.push(String(h).padStart(2,'0')+':'+String(m).padStart(2,'0'));}
   const grid=document.getElementById('slotsGrid');
   if(slots.length===0){grid.innerHTML=`<div class="no-slots">Sin horas disponibles para la duración seleccionada.</div>`;return;}
-  grid.innerHTML=slots.map(s=>`<div class="slot" id="sl-${s.replace(':','-')}" onclick="selSlot('${s}')">${s}</div>`).join('');
+  grid.innerHTML=slots.map(s=>{
+    // Verificar 24h mínimo
+    const[h,m]=s.split(':').map(Number);
+    const slotDate=new Date(date);slotDate.setHours(h,m,0,0);
+    const menosDe24h=(slotDate.getTime()-ahora.getTime())<24*60*60*1000;
+    if(menosDe24h) return `<div class="slot taken" title="Mínimo 24h de antelación">${s}</div>`;
+    // Verificar disponibilidad configurada por admin
+    if(!isFranjaDisponible(s)) return `<div class="slot taken" title="No disponible">${s}</div>`;
+    return `<div class="slot" id="sl-${s.replace(':','-')}" onclick="selSlot('${s}')">${s}</div>`;
+  }).join('');
   const fechaStr=fechaTexto(date),stf=STAFF.find(s=>s.id===sel.staff);
   if(window._getTakenSlots){window._getTakenSlots(fechaStr,stf?stf.name:'',mins).then(filtrar=>{const bloqueados=typeof filtrar==='function'?filtrar(slots):filtrar;bloqueados.forEach(t=>{const el=document.getElementById('sl-'+t.replace(':','-'));if(el){el.classList.add('taken');el.onclick=null;if(sel.hora===t)sel.hora=null;}});});}
 }
@@ -411,7 +443,9 @@ function confirmar(){
   window._lastCita=cita;
   if(window._saveToFirebase)window._saveToFirebase(cita).catch(()=>{});
   // Notificaciones Twilio
-  try{fetch('https://visos-keratin-server-production.up.railway.app/agendar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(cita)}).catch(e=>console.warn('Notif:',e));}catch(e){}
+  // Incluir firebaseKey para el enlace de cancelación
+  const citaParaServidor={...cita, firebaseKey: window._lastKey||''};
+  try{fetch('https://visos-keratin-server-production.up.railway.app/agendar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(citaParaServidor)}).catch(e=>console.warn('Notif:',e));}catch(e){}
   document.getElementById('successDetail').innerHTML=`<p><strong>${nombre}</strong> · ${telefono}</p><p>✂️ ${svcs.map(s=>s.name).join(' + ')}</p><p>Con <strong>${stf.name}</strong> · ${ft}</p><p>${sel.hora} – ${fin} (${mins} min)</p>`;
   document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
   document.getElementById('step6').classList.add('active');
@@ -420,6 +454,18 @@ function confirmar(){
 
 function mostrarCancelar(){
   const c=window._lastCita;if(!c){alert('No hay cita activa para cancelar.');return;}
+  // Verificar 5 horas mínimas
+  try{
+    const partes=c.fecha.split(' ');
+    const[d,m,y]=partes[1].split('/').map(Number);
+    const[h,mn]=c.horaInicio.split(':').map(Number);
+    const fechaCita=new Date(y,m-1,d,h,mn,0,0);
+    const diffHoras=(fechaCita-new Date())/(1000*60*60);
+    if(diffHoras<5){
+      alert('Las cancelaciones deben realizarse con mínimo 5 horas de anticipación. Si necesitas ayuda contáctanos directamente.');
+      return;
+    }
+  }catch(e){}
   document.getElementById('cancelDetail').innerHTML=`<p><strong>${c.nombre}</strong></p><p>${c.servicios}</p><p>${c.fecha} · ${c.horaInicio} – ${c.horaFin}</p>`;
   document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
   document.getElementById('step7').classList.add('active');
@@ -443,6 +489,90 @@ function reiniciar(){
   goStep(1);
 }
 buildCal();
+
+// ── Cancelación desde enlace WhatsApp ─────────────────────────
+(function(){
+  const params=new URLSearchParams(window.location.search);
+  const key=params.get('cancelar');
+  if(!key) return;
+
+  // Mostrar pantalla de cancelación directa
+  function mostrarCancelacionDirecta(cita, key){
+    // Verificar si faltan más de 5 horas
+    const ahora=new Date();
+    const DIAS_MAP={Dom:0,Lun:1,Mar:2,'Mié':3,Jue:4,Vie:5,'Sáb':6};
+
+    // Parsear fecha "Lun 29/7/2026"
+    let puedeCancel=true;
+    try{
+      const partes=cita.fecha.split(' ');
+      const [d,m,y]=partes[1].split('/').map(Number);
+      const [h,mn]=cita.horaInicio.split(':').map(Number);
+      const fechaCita=new Date(y,m-1,d,h,mn,0,0);
+      const diffHoras=(fechaCita-ahora)/(1000*60*60);
+      puedeCancel=diffHoras>=5;
+    }catch(e){}
+
+    // Ocultar progreso y mostrar pantalla de cancelación
+    document.querySelector('.progress-wrap').style.display='none';
+    document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
+
+    if(!puedeCancel){
+      // Mostrar mensaje de tiempo expirado
+      document.getElementById('step7').innerHTML=`
+        <div class="cancel-screen">
+          <div class="cancel-icon">⏰</div>
+          <h2 class="cancel-title" style="color:var(--muted);">Cancelación no disponible</h2>
+          <p class="cancel-sub">Las cancelaciones deben realizarse con <strong>mínimo 5 horas de anticipación.</strong><br>Si necesitas ayuda contáctanos directamente.</p>
+          <div class="cancel-detail">
+            <p><strong>${cita.nombre}</strong></p>
+            <p>${cita.servicios||'—'}</p>
+            <p>${cita.fecha} · ${cita.horaInicio}</p>
+          </div>
+        </div>`;
+      document.getElementById('step7').classList.add('active');
+      return;
+    }
+
+    // Mostrar confirmación de cancelación
+    window._lastKey=key;
+    window._lastCita=cita;
+    document.getElementById('cancelDetail').innerHTML=`
+      <p><strong>${cita.nombre}</strong></p>
+      <p>${cita.servicios||'—'}</p>
+      <p>${cita.fecha} · ${cita.horaInicio} – ${cita.horaFin}</p>`;
+    document.getElementById('step7').classList.add('active');
+  }
+
+  // Cargar cita desde Firebase
+  if(window._getTakenSlots){
+    // Usamos get directamente
+    import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js').then(()=>{
+      import('https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js').then(({getDatabase,ref,get})=>{
+        try{
+          const app=window._fbApp;
+          if(!app)return;
+          const db=getDatabase(app);
+          get(ref(db,'citas/'+key)).then(snap=>{
+            if(snap.exists()){
+              mostrarCancelacionDirecta(snap.val(), key);
+            } else {
+              document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
+              document.getElementById('step7').innerHTML=`
+                <div class="cancel-screen">
+                  <div class="cancel-icon">🔍</div>
+                  <h2 class="cancel-title" style="color:var(--muted);">Cita no encontrada</h2>
+                  <p class="cancel-sub">Es posible que esta cita ya fue cancelada o el enlace expiró.</p>
+                  <button class="btn-primary" onclick="reiniciar()">Agendar nueva cita</button>
+                </div>`;
+              document.getElementById('step7').classList.add('active');
+            }
+          });
+        }catch(e){console.warn('Cancel link error:',e);}
+      });
+    });
+  }
+})();
 </script>
 </body>
 </html>
