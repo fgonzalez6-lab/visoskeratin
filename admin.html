@@ -162,7 +162,10 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
       <div class="field">
         <label>Contraseña</label>
         <input type="password" id="inp-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')login()"/>
-        <button class="eye-btn" onclick="togglePass()" id="eyeBtn" type="button">👁️</button>
+        <button class="eye-btn" onclick="togglePass()" id="eyeBtn" type="button">
+  <svg id="eye-open" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+  <svg id="eye-closed" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+</button>
       </div>
       <button class="btn-login" onclick="login()">Ingresar →</button>
       <div class="login-error" id="login-err">Usuario o contraseña incorrectos</div>
@@ -186,6 +189,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
   <div class="nav">
     <button class="nt on" onclick="showP('hoy',this)">Hoy</button>
     <button class="nt" onclick="showP('agenda',this)">Agenda</button>
+    <button class="nt" onclick="showP('disponibilidad',this)">Disponibilidad</button>
     <button class="nt" onclick="showP('equipo',this)">Equipo</button>
     <button class="nt" onclick="showP('historial',this)">Historial</button>
   </div>
@@ -208,6 +212,41 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
       <button class="fb" onclick="setFiltro('cancelada',this)">Canceladas</button>
     </div>
     <div id="lista-agenda"></div>
+  </div>
+
+  <!-- DISPONIBILIDAD -->
+  <div class="panel" id="p-disponibilidad">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:8px;">
+      <p class="sec-title" style="margin:0;">Gestión de disponibilidad</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <select id="apply-weeks" style="background:#fff;border:1.5px solid var(--gb);border-radius:var(--r);padding:6px 10px;font-size:12px;color:var(--text);font-family:'Montserrat',sans-serif;outline:none;">
+          <option value="1">Aplicar 1 semana</option>
+          <option value="2">Aplicar 2 semanas</option>
+          <option value="3">Aplicar 3 semanas</option>
+          <option value="4">Aplicar 1 mes</option>
+          <option value="8">Aplicar 2 meses</option>
+        </select>
+        <button class="btn-add" onclick="guardarDisponibilidad()" style="margin:0;">Guardar cambios</button>
+      </div>
+    </div>
+
+    <!-- Días de la semana -->
+    <div style="background:#fff;border:1.5px solid var(--gb);border-radius:var(--r);padding:1.25rem;margin-bottom:1rem;box-shadow:0 1px 6px rgba(212,160,23,.06);">
+      <p style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:1rem;">Días laborales</p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;" id="dias-grid"></div>
+    </div>
+
+    <!-- Franjas horarias -->
+    <div style="background:#fff;border:1.5px solid var(--gb);border-radius:var(--r);padding:1.25rem;margin-bottom:1rem;box-shadow:0 1px 6px rgba(212,160,23,.06);">
+      <p style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:1rem;">Franjas horarias disponibles</p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:6px;" id="franjas-grid"></div>
+    </div>
+
+    <!-- Vista previa -->
+    <div style="background:#fff;border:1.5px solid var(--gb);border-radius:var(--r);padding:1.25rem;box-shadow:0 1px 6px rgba(212,160,23,.06);">
+      <p style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:1rem;">Vista previa — próximos días disponibles</p>
+      <div id="preview-dias" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
+    </div>
   </div>
 
   <!-- EQUIPO -->
@@ -309,6 +348,16 @@ window._pushCita=function(cita){
   if(!db)return Promise.resolve(null);
   return push(ref(db,'citas'),cita).then(r=>r.key).catch(()=>null);
 };
+window._saveDispon=function(config){
+  if(!db)return Promise.resolve();
+  return update(ref(db,'config/disponibilidad'),config).catch(e=>console.warn('Dispon save:',e));
+};
+window._loadDispon=function(cb){
+  if(!db){cb(null);return;}
+  onValue(ref(db,'config/disponibilidad'),snap=>{
+    cb(snap.exists()?snap.val():null);
+  },{onlyOnce:true});
+};
 </script>
 
 <script>
@@ -331,8 +380,10 @@ const LOG=[];
 
 function togglePass(){
   const inp=document.getElementById('inp-pass');
-  inp.type=inp.type==='password'?'text':'password';
-  document.getElementById('eyeBtn').textContent=inp.type==='password'?'👁️':'🙈';
+  const isPass=inp.type==='password';
+  inp.type=isPass?'text':'password';
+  document.getElementById('eye-open').style.display=isPass?'none':'block';
+  document.getElementById('eye-closed').style.display=isPass?'block':'none';
 }
 
 function login(){
@@ -362,6 +413,15 @@ if(sessionStorage.getItem('vk_admin')==='1'){
 
 function initApp(){
   tickReloj();setInterval(tickReloj,15000);
+  // Cargar disponibilidad desde Firebase
+  if(window._loadDispon){
+    window._loadDispon(function(config){
+      if(config){
+        disponConfig=config;
+        localStorage.setItem('vk_dispon',JSON.stringify(config));
+      }
+    });
+  }
   if(window._listenCitas){
     window._listenCitas(function(citas){
       const primera=CITAS.length===0;
@@ -496,7 +556,7 @@ async function cambiar(key,nuevoEstado){
 
 function buscar(v){busq=v.toLowerCase();renderAgenda();}
 function setFiltro(f,btn){filtro=f;document.querySelectorAll('.fb').forEach(b=>b.classList.remove('on'));btn.classList.add('on');renderAgenda();}
-function showP(id,btn){document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));document.querySelectorAll('.nt').forEach(b=>b.classList.remove('on'));document.getElementById('p-'+id).classList.add('on');btn.classList.add('on');if(id==='agenda')renderAgenda();}
+function showP(id,btn){document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));document.querySelectorAll('.nt').forEach(b=>b.classList.remove('on'));document.getElementById('p-'+id).classList.add('on');btn.classList.add('on');if(id==='agenda')renderAgenda();if(id==='disponibilidad')renderDisponibilidad();}
 function abrirModal(){document.getElementById('modal').classList.add('open');}
 function cerrarModal(){document.getElementById('modal').classList.remove('open');}
 
@@ -586,6 +646,87 @@ async function guardarReagendar(){
   LOG.unshift({t:hora(),x:'Cita reagendada',s:`${fechaStr} · ${horaVal} · ${selSvcs.join(', ')}`});
   cerrarReagendar();toast('✅ Cita reagendada para '+fechaStr+' a las '+horaVal);renderTimeline();
 }
+
+// ── DISPONIBILIDAD ──────────────────────────────────────────────
+const DIAS_SEMANA=[
+  {id:'lun',nombre:'Lunes',activo:true},
+  {id:'mar',nombre:'Martes',activo:true},
+  {id:'mie',nombre:'Miércoles',activo:true},
+  {id:'jue',nombre:'Jueves',activo:true},
+  {id:'vie',nombre:'Viernes',activo:true},
+  {id:'sab',nombre:'Sábado',activo:true},
+];
+const FRANJAS_BASE=[];
+for(let h=7;h<17;h++)for(let m=0;m<60;m+=30)FRANJAS_BASE.push(`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`);
+
+// Load from Firebase or localStorage
+let disponConfig = JSON.parse(localStorage.getItem('vk_dispon') || 'null') || {
+  dias: {lun:true,mar:true,mie:true,jue:true,vie:true,sab:true},
+  franjas: Object.fromEntries(FRANJAS_BASE.map(f=>[f,true]))
+};
+
+function renderDisponibilidad(){
+  // Días
+  const diasGrid=document.getElementById('dias-grid');
+  if(!diasGrid)return;
+  diasGrid.innerHTML=DIAS_SEMANA.map(d=>`
+    <div class="dia-toggle${disponConfig.dias[d.id]?' activo':''}" onclick="toggleDia('${d.id}')" id="dia-${d.id}">
+      <span class="dia-nombre">${d.nombre}</span>
+      <div class="dia-switch"></div>
+    </div>`).join('');
+
+  // Franjas — mostrar solo lunes (8-17) y sábado (7-17)
+  const franjasGrid=document.getElementById('franjas-grid');
+  franjasGrid.innerHTML=FRANJAS_BASE.map(f=>`
+    <div class="franja-btn${disponConfig.franjas[f]?' activa':''}" onclick="toggleFranja('${f}')" id="fr-${f.replace(':','-')}">${f}</div>`).join('');
+
+  renderPreview();
+}
+
+function toggleDia(id){
+  disponConfig.dias[id]=!disponConfig.dias[id];
+  const el=document.getElementById('dia-'+id);
+  el.classList.toggle('activo',disponConfig.dias[id]);
+  el.querySelector('.dia-switch');
+  renderPreview();
+}
+
+function toggleFranja(f){
+  disponConfig.franjas[f]=!disponConfig.franjas[f];
+  document.getElementById('fr-'+f.replace(':','-')).classList.toggle('activa',disponConfig.franjas[f]);
+  renderPreview();
+}
+
+function renderPreview(){
+  const preview=document.getElementById('preview-dias');
+  if(!preview)return;
+  const hoy=new Date();
+  const semanas=parseInt(document.getElementById('apply-weeks')?.value||1);
+  const dias=[];
+  const MAP={0:null,1:'lun',2:'mar',3:'mie',4:'jue',5:'vie',6:'sab'};
+  for(let i=1;i<=semanas*7;i++){
+    const d=new Date(hoy);d.setDate(hoy.getDate()+i);
+    const key=MAP[d.getDay()];
+    if(!key)continue;
+    const disponible=disponConfig.dias[key];
+    const label=`${['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'][d.getDay()]} ${d.getDate()}/${d.getMonth()+1}`;
+    dias.push(`<span class="preview-dia${disponible?'':' bloqueado'}">${disponible?'✓':' ✕'} ${label}</span>`);
+  }
+  preview.innerHTML=dias.join('');
+}
+
+async function guardarDisponibilidad(){
+  localStorage.setItem('vk_dispon',JSON.stringify(disponConfig));
+  // Guardar en Firebase para que el cliente lo lea
+  if(window._saveDispon){
+    await window._saveDispon(disponConfig);
+  }
+  toast('✅ Disponibilidad guardada — se reflejará en la app de clientas');
+  renderPreview();
+}
+
+// Expose config for client app (via Firebase would be ideal)
+window._getDisponConfig=()=>disponConfig;
 
 document.getElementById('inp-user').focus();
 </script>
