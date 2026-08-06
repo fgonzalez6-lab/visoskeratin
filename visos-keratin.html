@@ -451,11 +451,24 @@ function confirmar(){
   const btn=document.getElementById('btnConfirmar');btn.textContent='Guardando...';btn.disabled=true;
   const cita={nombre,telefono,correo,servicios:svcs.map(s=>s.name).join(', '),estilista:stf.name,fecha:ft,horaInicio:sel.hora,horaFin:fin,duracion:mins,estado:'pendiente',creadoEn:new Date().toISOString()};
   window._lastCita=cita;
-  if(window._saveToFirebase)window._saveToFirebase(cita).catch(()=>{});
-  // Notificaciones Twilio
-  // Incluir firebaseKey para el enlace de cancelación
-  const citaParaServidor={...cita, firebaseKey: window._lastKey||''};
-  try{fetch('https://visos-keratin-server-production.up.railway.app/agendar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(citaParaServidor)}).catch(e=>console.warn('Notif:',e));}catch(e){}
+  // Primero guardar en Firebase y ESPERAR la key antes de enviar WhatsApp
+  const fbPromise = window._saveToFirebase ? window._saveToFirebase(cita) : Promise.resolve(null);
+  fbPromise.then(function(key){
+    const firebaseKey = key || window._lastKey || '';
+    console.log('🔑 Key obtenida:', firebaseKey);
+    const citaConKey = {...cita, firebaseKey};
+    fetch('https://visos-keratin-server-production.up.railway.app/agendar',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(citaConKey)
+    }).catch(e=>console.warn('Notif:',e));
+  }).catch(function(){
+    fetch('https://visos-keratin-server-production.up.railway.app/agendar',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(cita)
+    }).catch(e=>console.warn('Notif:',e));
+  });
   document.getElementById('successDetail').innerHTML=`<p><strong>${nombre}</strong> · ${telefono}</p><p>✂️ ${svcs.map(s=>s.name).join(' + ')}</p><p>Con <strong>${stf.name}</strong> · ${ft}</p><p>${sel.hora} – ${fin} (${mins} min)</p>`;
   document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
   document.getElementById('step6').classList.add('active');
