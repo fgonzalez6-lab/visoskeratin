@@ -358,6 +358,7 @@ function isFranjaDisponible(hora){
 
 function buildCal(){
   const ahora=new Date();
+  const hoy=new Date();hoy.setHours(0,0,0,0);
   // Mínimo 24 horas desde este momento exacto
   const minDate=new Date(ahora.getTime() + 24*60*60*1000);
   document.getElementById('calTitle').textContent=MESES[calMonth]+' '+calYear;
@@ -368,8 +369,12 @@ function buildCal(){
   for(let d=1;d<=daysInMonth;d++){
     const date=new Date(calYear,calMonth,d);date.setHours(0,0,0,0);
     const iso=`${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    const esFestivo=FESTIVOS.has(iso),esDomingo=date.getDay()===0,esPasado=date<minDate;
-    const esHoy=date.getTime()===hoy.getTime(),esSelec=sel.fecha&&sel.fecha.toDateString()===date.toDateString();
+    const esFestivo=FESTIVOS.has(iso);
+    const esDomingo=date.getDay()===0;
+    const esPasado=date<minDate;
+    const esBloqueado=!isDiaDisponible(date.getDay());
+    const esHoy=date.getTime()===hoy.getTime();
+    const esSelec=sel.fecha&&sel.fecha.toDateString()===date.toDateString();
     let cls='cal-day';
     if(esDomingo||esBloqueado)cls+=' domingo';
     else if(esFestivo)cls+=' festivo';
