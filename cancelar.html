@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Visos Keratin — Cancelar cita</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;600&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+:root{--gold:#D4A017;--navy:#1B2B4B;--bg:#F5F0E8;--white:#fff;--gray:#E8E4DC;--muted:#7A7A7A;--red:#C0392B;--r:14px;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--navy);font-family:'Montserrat',sans-serif;font-weight:300;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1.5rem;}
+.card{background:var(--white);border-radius:var(--r);box-shadow:0 4px 24px rgba(0,0,0,0.08);padding:2rem;width:100%;max-width:420px;text-align:center;}
+.logo{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;letter-spacing:5px;color:var(--navy);text-transform:uppercase;margin-bottom:4px;}
+.lema{font-size:10px;color:var(--muted);letter-spacing:1px;font-style:italic;margin-bottom:1.5rem;}
+.icon{font-size:48px;margin-bottom:1rem;display:block;}
+.title{font-size:20px;font-weight:700;margin-bottom:8px;}
+.sub{font-size:13px;color:var(--muted);margin-bottom:1.5rem;line-height:1.6;}
+.detail{background:var(--bg);border-radius:var(--r);padding:1rem;text-align:left;margin-bottom:1.5rem;}
+.detail p{font-size:13px;color:var(--muted);margin-bottom:5px;line-height:1.6;}
+.detail strong{color:var(--navy);font-weight:600;}
+.btn-cancel{width:100%;padding:14px;background:var(--white);color:var(--red);border:1.5px solid var(--red);border-radius:var(--r);font-family:'Montserrat',sans-serif;font-size:12px;font-weight:600;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:all .2s;margin-bottom:8px;}
+.btn-cancel:hover{background:#FEF2F2;}
+.btn-cancel:disabled{opacity:.5;cursor:not-allowed;}
+.btn-new{width:100%;padding:14px;background:var(--gold);color:#fff;border:none;border-radius:var(--r);font-family:'Montserrat',sans-serif;font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:all .2s;}
+.btn-new:hover{opacity:.9;}
+.loading{color:var(--muted);font-size:13px;margin:1rem 0;}
+.spinner{display:inline-block;width:24px;height:24px;border:3px solid var(--gray);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;margin-bottom:.5rem;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.alert-warn{padding:10px 14px;border-radius:8px;background:#FEF9EC;border:1px solid #F0D080;font-size:12px;color:#7A5C00;margin-bottom:1rem;line-height:1.7;}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">Visos Keratin</div>
+  <div class="lema">¡Donde tu cabello encuentra su mejor versión!</div>
+  <div id="contenido">
+    <span class="icon">⏳</span>
+    <div class="spinner"></div>
+    <p class="loading">Cargando tu cita...</p>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+const firebaseConfig={
+  apiKey:"AIzaSyC4TtVL7HM5ZQUGnqQZMCrTz_xtipUmU1Y",
+  authDomain:"visos-keratin.firebaseapp.com",
+  databaseURL:"https://visos-keratin-default-rtdb.firebaseio.com",
+  projectId:"visos-keratin",
+  storageBucket:"visos-keratin.firebasestorage.app",
+  messagingSenderId:"793810207482",
+  appId:"1:793810207482:web:80f771072a782b085c3f43"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+// Obtener key de la URL
+const params = new URLSearchParams(window.location.search);
+const key = params.get('cancelar');
+
+function mostrarError(msg){
+  document.getElementById('contenido').innerHTML=`
+    <span class="icon">🔍</span>
+    <h2 class="title" style="color:var(--muted);">${msg}</h2>
+    <button class="btn-new" onclick="location.href='visos-keratin.html'" style="margin-top:1rem;">Agendar nueva cita</button>`;
+}
+
+function mostrarNoPuede(cita){
+  document.getElementById('contenido').innerHTML=`
+    <span class="icon">⏰</span>
+    <h2 class="title" style="color:var(--muted);">Cancelación no disponible</h2>
+    <p class="sub">Las cancelaciones deben realizarse con <strong>mínimo 5 horas de anticipación.</strong><br>Contáctanos directamente si necesitas ayuda.</p>
+    <div class="detail">
+      <p><strong>${cita.nombre}</strong></p>
+      <p>${cita.servicios||'—'}</p>
+      <p>${cita.fecha} · ${cita.horaInicio}</p>
+    </div>
+    <button class="btn-new" onclick="location.href='visos-keratin.html'">Agendar nueva cita</button>`;
+}
+
+function mostrarCancelacion(cita){
+  document.getElementById('contenido').innerHTML=`
+    <span class="icon">❌</span>
+    <h2 class="title">Cancelar cita</h2>
+    <p class="sub">¿Estás segura de que deseas cancelar? Se notificará al salón automáticamente.</p>
+    <div class="detail">
+      <p><strong>${cita.nombre}</strong></p>
+      <p>✂️ ${cita.servicios||'—'}</p>
+      <p>👩‍🎨 ${cita.estilista}</p>
+      <p>📅 ${cita.fecha} · ${cita.horaInicio} – ${cita.horaFin}</p>
+    </div>
+    <div class="alert-warn">⚠️ Esta acción no se puede deshacer.</div>
+    <button class="btn-cancel" id="btnCancelar" onclick="ejecutarCancelacion()">Sí, cancelar mi cita</button>
+    <button class="btn-new" onclick="location.href='visos-keratin.html'">Volver al inicio</button>`;
+}
+
+function mostrarCancelada(cita){
+  document.getElementById('contenido').innerHTML=`
+    <span class="icon">✅</span>
+    <h2 class="title" style="color:var(--muted);">Cita cancelada</h2>
+    <p class="sub">Tu cita ha sido cancelada exitosamente. Hemos notificado al salón.</p>
+    <div class="detail">
+      <p><strong>${cita.nombre}</strong></p>
+      <p>${cita.servicios||'—'} · ${cita.fecha}</p>
+    </div>
+    <button class="btn-new" onclick="location.href='visos-keratin.html'">Agendar nueva cita</button>`;
+}
+
+async function ejecutarCancelacion(){
+  const btn=document.getElementById('btnCancelar');
+  btn.textContent='Cancelando...';btn.disabled=true;
+  try{
+    // Actualizar estado en Firebase
+    await update(ref(db,'citas/'+key),{estado:'cancelada'});
+    // Notificar al servidor
+    const snap=await get(ref(db,'citas/'+key));
+    const cita=snap.val();
+    fetch('https://visos-keratin-server-production.up.railway.app/cancelar',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(cita)
+    }).catch(()=>{});
+    mostrarCancelada(cita);
+  }catch(e){
+    btn.textContent='Sí, cancelar mi cita';btn.disabled=false;
+    alert('Error al cancelar. Intenta de nuevo.');
+  }
+}
+
+// Cargar cita
+if(!key){
+  mostrarError('Enlace inválido');
+} else {
+  try{
+    const snap = await get(ref(db,'citas/'+key));
+    if(!snap.exists()){
+      mostrarError('Cita no encontrada o ya fue cancelada.');
+    } else {
+      const cita = snap.val();
+      if(cita.estado==='cancelada'){
+        mostrarError('Esta cita ya fue cancelada anteriormente.');
+        return;
+      }
+      // Verificar 5 horas mínimas
+      try{
+        const partes=cita.fecha.split(' ');
+        const[d,m,y]=partes[1].split('/').map(Number);
+        const[h,mn]=cita.horaInicio.split(':').map(Number);
+        const fechaCita=new Date(y,m-1,d,h,mn,0,0);
+        const diffHoras=(fechaCita-new Date())/(1000*60*60);
+        if(diffHoras<5){ mostrarNoPuede(cita); return; }
+      }catch(e){}
+      mostrarCancelacion(cita);
+    }
+  }catch(e){
+    mostrarError('Error de conexión. Intenta de nuevo.');
+  }
+}
+
+window.ejecutarCancelacion=ejecutarCancelacion;
+</script>
+</body>
+</html>
