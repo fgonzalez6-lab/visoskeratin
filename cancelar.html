@@ -129,12 +129,19 @@ async function ejecutarCancelacion(){
   }
 }
 
+// Timeout de 8 segundos
+const timeout = setTimeout(()=>{
+  mostrarError('Tiempo de espera agotado. Verifica tu conexión e intenta de nuevo.');
+}, 8000);
+
 // Cargar cita
 if(!key){
+  clearTimeout(timeout);
   mostrarError('Enlace inválido');
 } else {
   try{
     const snap = await get(ref(db,'citas/'+key));
+    clearTimeout(timeout);
     if(!snap.exists()){
       mostrarError('Cita no encontrada o ya fue cancelada.');
     } else {
@@ -155,7 +162,8 @@ if(!key){
       mostrarCancelacion(cita);
     }
   }catch(e){
-    mostrarError('Error de conexión. Intenta de nuevo.');
+    console.error('Error Firebase:', e);
+    mostrarError('Error: ' + e.message);
   }
 }
 
