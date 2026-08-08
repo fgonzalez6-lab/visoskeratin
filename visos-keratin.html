@@ -271,7 +271,7 @@ body{background:var(--bg);color:var(--text);font-family:'Montserrat',sans-serif;
         <span class="notif-pill">✓ Correo enviado</span>
       </div>
       <div class="cancel-link-box">
-        ¿Necesitas cancelar? Recibirás un enlace en tu WhatsApp para cancelar fácilmente, o puedes hacerlo aquí abajo.
+        ¿Necesitas cancelar? Puedes hacerlo <strong>hasta 5 horas antes</strong> de tu cita tocando el enlace que te llegó por WhatsApp, o usando el botón de abajo.
       </div>
       <button class="btn-cancel" onclick="mostrarCancelar()" style="margin-top:1rem;">Cancelar mi cita</button>
       <button class="btn-secondary" onclick="reiniciar()">Agendar otra cita</button>
@@ -319,6 +319,8 @@ window._getCita=function(key){
   return get(ref(db,'citas/'+key)).then(snap=>snap.exists()?snap.val():null).catch(()=>null);
 };
 window._fbDb=true; // Flag para saber que Firebase está listo
+// Disparar evento para que el código de cancelación sepa que Firebase está listo
+window.dispatchEvent(new Event('firebaseReady'));
 </script>
 
 <script>
