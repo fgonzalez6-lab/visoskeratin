@@ -23,8 +23,7 @@ body{background:var(--bg);color:var(--navy);font-family:'Montserrat',sans-serif;
 .btn-cancel:disabled{opacity:.5;cursor:not-allowed;}
 .btn-new{width:100%;padding:14px;background:var(--gold);color:#fff;border:none;border-radius:var(--r);font-family:'Montserrat',sans-serif;font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:all .2s;}
 .btn-new:hover{opacity:.9;}
-.loading{color:var(--muted);font-size:13px;margin:1rem 0;}
-.spinner{display:inline-block;width:24px;height:24px;border:3px solid var(--gray);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;margin-bottom:.5rem;}
+.spinner{display:inline-block;width:28px;height:28px;border:3px solid var(--gray);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;margin:0.5rem auto;}
 @keyframes spin{to{transform:rotate(360deg);}}
 .alert-warn{padding:10px 14px;border-radius:8px;background:#FEF9EC;border:1px solid #F0D080;font-size:12px;color:#7A5C00;margin-bottom:1rem;line-height:1.7;}
 </style>
@@ -36,14 +35,15 @@ body{background:var(--bg);color:var(--navy);font-family:'Montserrat',sans-serif;
   <div id="contenido">
     <span class="icon">⏳</span>
     <div class="spinner"></div>
-    <p class="loading">Cargando tu cita...</p>
+    <p style="color:var(--muted);font-size:13px;margin-top:.5rem;">Cargando tu cita...</p>
   </div>
 </div>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-
+<!-- Firebase como scripts normales (no módulos) -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script>
+// Inicializar Firebase
 const firebaseConfig={
   apiKey:"AIzaSyC4TtVL7HM5ZQUGnqQZMCrTz_xtipUmU1Y",
   authDomain:"visos-keratin.firebaseapp.com",
@@ -54,8 +54,8 @@ const firebaseConfig={
   appId:"1:793810207482:web:80f771072a782b085c3f43"
 };
 
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
 
 // Obtener key de la URL
 const params = new URLSearchParams(window.location.search);
@@ -78,7 +78,7 @@ function mostrarNoPuede(cita){
       <p>${cita.servicios||'—'}</p>
       <p>${cita.fecha} · ${cita.horaInicio}</p>
     </div>
-    <button class="btn-new" onclick="location.href='visos-keratin.html'">Agendar nueva cita</button>`;
+    <button class="btn-new" onclick="location.href='visos-keratin.html'">Volver al inicio</button>`;
 }
 
 function mostrarCancelacion(cita){
@@ -109,65 +109,55 @@ function mostrarCancelada(cita){
     <button class="btn-new" onclick="location.href='visos-keratin.html'">Agendar nueva cita</button>`;
 }
 
-async function ejecutarCancelacion(){
+function ejecutarCancelacion(){
   const btn=document.getElementById('btnCancelar');
   btn.textContent='Cancelando...';btn.disabled=true;
-  try{
-    // Actualizar estado en Firebase
-    await update(ref(db,'citas/'+key),{estado:'cancelada'});
-    // Notificar al servidor
-    const snap=await get(ref(db,'citas/'+key));
-    const cita=snap.val();
-    fetch('https://visos-keratin-server-production.up.railway.app/cancelar',{
-      method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify(cita)
-    }).catch(()=>{});
-    mostrarCancelada(cita);
-  }catch(e){
+  db.ref('citas/'+key).update({estado:'cancelada'}).then(function(){
+    db.ref('citas/'+key).once('value').then(function(snap){
+      const cita=snap.val();
+      // Notificar al servidor
+      fetch('https://visos-keratin-server-production.up.railway.app/cancelar',{
+        method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify(cita)
+      }).catch(function(){});
+      mostrarCancelada(cita);
+    });
+  }).catch(function(e){
     btn.textContent='Sí, cancelar mi cita';btn.disabled=false;
-    alert('Error al cancelar. Intenta de nuevo.');
-  }
+    alert('Error al cancelar: '+e.message);
+  });
 }
-
-// Timeout de 8 segundos
-const timeout = setTimeout(()=>{
-  mostrarError('Tiempo de espera agotado. Verifica tu conexión e intenta de nuevo.');
-}, 8000);
 
 // Cargar cita
 if(!key){
-  clearTimeout(timeout);
-  mostrarError('Enlace inválido');
+  mostrarError('Enlace inválido. Verifica el enlace recibido por WhatsApp.');
 } else {
-  try{
-    const snap = await get(ref(db,'citas/'+key));
-    clearTimeout(timeout);
+  db.ref('citas/'+key).once('value').then(function(snap){
     if(!snap.exists()){
       mostrarError('Cita no encontrada o ya fue cancelada.');
-    } else {
-      const cita = snap.val();
-      if(cita.estado==='cancelada'){
-        mostrarError('Esta cita ya fue cancelada anteriormente.');
-        return;
-      }
-      // Verificar 5 horas mínimas
-      try{
-        const partes=cita.fecha.split(' ');
-        const[d,m,y]=partes[1].split('/').map(Number);
-        const[h,mn]=cita.horaInicio.split(':').map(Number);
-        const fechaCita=new Date(y,m-1,d,h,mn,0,0);
-        const diffHoras=(fechaCita-new Date())/(1000*60*60);
-        if(diffHoras<5){ mostrarNoPuede(cita); return; }
-      }catch(e){}
-      mostrarCancelacion(cita);
+      return;
     }
-  }catch(e){
-    console.error('Error Firebase:', e);
-    mostrarError('Error: ' + e.message);
-  }
+    const cita=snap.val();
+    if(cita.estado==='cancelada'){
+      mostrarError('Esta cita ya fue cancelada anteriormente.');
+      return;
+    }
+    // Verificar 5 horas mínimas
+    try{
+      const partes=cita.fecha.split(' ');
+      const fechaPartes=partes[1].split('/');
+      const d=parseInt(fechaPartes[0]),m=parseInt(fechaPartes[1]),y=parseInt(fechaPartes[2]);
+      const horaParts=cita.horaInicio.split(':');
+      const h=parseInt(horaParts[0]),mn=parseInt(horaParts[1]);
+      const fechaCita=new Date(y,m-1,d,h,mn,0,0);
+      const diffHoras=(fechaCita-new Date())/(1000*60*60);
+      if(diffHoras<5){mostrarNoPuede(cita);return;}
+    }catch(e){console.warn('Error parseando fecha:',e);}
+    mostrarCancelacion(cita);
+  }).catch(function(e){
+    mostrarError('Error de conexión: '+e.message);
+  });
 }
-
-window.ejecutarCancelacion=ejecutarCancelacion;
 </script>
 </body>
 </html>
