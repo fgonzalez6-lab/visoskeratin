@@ -713,8 +713,8 @@ function setModo(modo, btn){
 function isoDate(y,m,d){return y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');}
 
 function isDiaDisponAdm(iso){
-  if(disponConfig.dias.hasOwnProperty(iso)) return disponConfig.dias[iso];
-  // Default: todos los días disponibles hasta que el admin configure
+  if(disponConfig.dias.hasOwnProperty(iso)) return disponConfig.dias[iso]===true;
+  // Default: todo disponible si no hay config
   return true;
 }
 
@@ -759,39 +759,44 @@ function cambiarMesDispon(dir){
 function selDiaDispon(iso){
   selectedDay=iso;
   const actual=isDiaDisponAdm(iso);
-  const nuevo=!actual;
+  const nuevo=!actual; // toggle
+
+  function aplicarDia(k, val){ disponConfig.dias[k]=val; }
 
   if(modoAplicacion==='dia'){
-    disponConfig.dias[iso]=nuevo;
+    aplicarDia(iso, nuevo);
+
   } else if(modoAplicacion==='semana'){
-    // Aplicar a toda la semana del día seleccionado
-    const date=new Date(iso);
+    // Toda la semana (dom a sab) que contiene el día seleccionado
+    const date=new Date(iso+'T12:00:00');
     const dow=date.getDay();
-    const lunes=new Date(date);lunes.setDate(date.getDate()-dow+1);
-    for(let i=0;i<6;i++){
-      const d=new Date(lunes);d.setDate(lunes.getDate()+i);
-      const k=isoDate(d.getFullYear(),d.getMonth(),d.getDate());
-      disponConfig.dias[k]=nuevo;
+    const inicioSemana=new Date(date);
+    inicioSemana.setDate(date.getDate()-dow); // domingo de esa semana
+    for(let i=0;i<7;i++){
+      const d=new Date(inicioSemana);
+      d.setDate(inicioSemana.getDate()+i);
+      aplicarDia(isoDate(d.getFullYear(),d.getMonth(),d.getDate()), nuevo);
     }
+
   } else if(modoAplicacion==='mes'){
-    // Aplicar a todo el mes
-    const date=new Date(iso);
+    // Todo el mes
+    const date=new Date(iso+'T12:00:00');
     const y=date.getFullYear(),m=date.getMonth();
     const days=new Date(y,m+1,0).getDate();
     for(let d=1;d<=days;d++){
-      const dd=new Date(y,m,d);
-      if(dd.getDay()!==0){
-        disponConfig.dias[isoDate(y,m,d)]=nuevo;
-      }
+      aplicarDia(isoDate(y,m,d), nuevo);
     }
+
   } else if(modoAplicacion==='siempre'){
-    // Aplicar a todos los días de ese día de semana en los próximos 3 meses
-    const date=new Date(iso);const dow=date.getDay();
+    // Mismo día de semana por los próximos 6 meses
+    const date=new Date(iso+'T12:00:00');
+    const dow=date.getDay();
     const hoy=new Date();
-    for(let i=0;i<90;i++){
-      const d=new Date(hoy);d.setDate(hoy.getDate()+i);
+    for(let i=0;i<=180;i++){
+      const d=new Date(hoy);
+      d.setDate(hoy.getDate()+i);
       if(d.getDay()===dow){
-        disponConfig.dias[isoDate(d.getFullYear(),d.getMonth(),d.getDate())]=nuevo;
+        aplicarDia(isoDate(d.getFullYear(),d.getMonth(),d.getDate()), nuevo);
       }
     }
   }
