@@ -347,15 +347,20 @@ if(window._getDisponibilidad){
   window._getDisponibilidad().then(cfg=>{if(cfg)_disponConfig=cfg;});
 }
 
-function isDiaDisponible(dow){
-  if(!_disponConfig||!_disponConfig.dias)return dow!==0; // default: todos menos domingo
-  const MAP={1:'lun',2:'mar',3:'mie',4:'jue',5:'vie',6:'sab'};
-  const key=MAP[dow];
-  return key?_disponConfig.dias[key]!==false:false;
+function isoFecha(date){
+  return date.getFullYear()+'-'+String(date.getMonth()+1).padStart(2,'0')+'-'+String(date.getDate()).padStart(2,'0');
+}
+function isDiaDisponible(dow, date){
+  if(dow===0)return false; // domingo siempre bloqueado
+  if(!_disponConfig||!_disponConfig.dias)return true; // sin config = todo disponible
+  const iso=date?isoFecha(date):null;
+  if(iso && _disponConfig.dias.hasOwnProperty(iso)) return _disponConfig.dias[iso];
+  return true; // si no tiene config específica = disponible
 }
 function isFranjaDisponible(hora){
   if(!_disponConfig||!_disponConfig.franjas)return true;
-  return _disponConfig.franjas[hora]!==false;
+  if(_disponConfig.franjas.hasOwnProperty(hora)) return _disponConfig.franjas[hora]!==false;
+  return true;
 }
 
 function buildCal(){
@@ -374,7 +379,7 @@ function buildCal(){
     const esFestivo=FESTIVOS.has(iso);
     const esDomingo=date.getDay()===0;
     const esPasado=date<minDate;
-    const esBloqueado=!isDiaDisponible(date.getDay());
+    const esBloqueado=!isDiaDisponible(date.getDay(), date);
     const esHoy=date.getTime()===hoy.getTime();
     const esSelec=sel.fecha&&sel.fecha.toDateString()===date.toDateString();
     let cls='cal-day';
@@ -392,27 +397,61 @@ function cambiarMes(dir){calMonth+=dir;if(calMonth>11){calMonth=0;calYear++;}if(
 function selFecha(y,m,d){sel.fecha=new Date(y,m,d);sel.hora=null;buildCal();buildSlots(sel.fecha);document.getElementById('slotsWrap').style.display='block';}
 
 function buildSlots(date){
-  const mins=totalMins(),dow=date.getDay(),startH=dow===6?7:8,endH=17;
+  const mins=totalMins();
   const ahora=new Date();
   const svcsNombres=SERVICES.filter(s=>selSvcs.has(s.id)).map(s=>s.name).join(', ')||'—';
-  const iso=`${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
-  document.getElementById('timeInfo').innerHTML=`📅 <strong>${DIAS[dow]} ${date.getDate()} de ${MESES[date.getMonth()]}</strong>${FESTIVOS.has(iso)?' 🎉':''} · Horario: ${startH}:00–${endH}:00 · <strong>${mins} min</strong><br><span style="color:var(--muted);">${svcsNombres}</span>`;
-  const slots=[];
-  for(let h=startH;h<endH;h++)for(let m=0;m<60;m+=30){if(h*60+m+mins<=endH*60)slots.push(String(h).padStart(2,'0')+':'+String(m).padStart(2,'0'));}
+  const iso=isoFecha(date);
   const grid=document.getElementById('slotsGrid');
-  if(slots.length===0){grid.innerHTML=`<div class="no-slots">Sin horas disponibles para la duración seleccionada.</div>`;return;}
+
+  // Obtener todas las franjas habilitadas por el admin (7:00 a 16:30 cada 30 min)
+  const TODAS_FRANJAS=[];
+  for(let h=7;h<17;h++)for(let m=0;m<60;m+=30)
+    TODAS_FRANJAS.push(String(h).padStart(2,'0')+':'+String(m).padStart(2,'0'));
+
+  // Filtrar solo las que el admin habilitó
+  const franjasActivas=TODAS_FRANJAS.filter(f=>isFranjaDisponible(f));
+
+  // Mostrar info
+  document.getElementById('timeInfo').innerHTML=
+    `📅 <strong>${DIAS[date.getDay()]} ${date.getDate()} de ${MESES[date.getMonth()]}</strong>${FESTIVOS.has(iso)?' 🎉':''} · <strong>${mins} min</strong><br><span style="color:var(--muted);">${svcsNombres}</span>`;
+
+  if(franjasActivas.length===0){
+    grid.innerHTML=`<div class="no-slots">No hay horarios disponibles para este día.</div>`;
+    return;
+  }
+
+  // Construir slots: solo franjas activas donde cabe el servicio completo
+  const slots=franjasActivas.filter(s=>{
+    const[h,m]=s.split(':').map(Number);
+    const fin=h*60+m+mins;
+    // Verificar que la hora de fin también esté dentro de franjas activas o al menos no exceda las 17:00
+    return fin<=17*60;
+  });
+
+  if(slots.length===0){
+    grid.innerHTML=`<div class="no-slots">Sin horas disponibles para la duración seleccionada.</div>`;
+    return;
+  }
+
   grid.innerHTML=slots.map(s=>{
-    // Verificar 24h mínimo
     const[h,m]=s.split(':').map(Number);
     const slotDate=new Date(date);slotDate.setHours(h,m,0,0);
     const menosDe24h=(slotDate.getTime()-ahora.getTime())<24*60*60*1000;
     if(menosDe24h) return `<div class="slot taken" title="Mínimo 24h de antelación">${s}</div>`;
-    // Verificar disponibilidad configurada por admin
-    if(!isFranjaDisponible(s)) return `<div class="slot taken" title="No disponible">${s}</div>`;
     return `<div class="slot" id="sl-${s.replace(':','-')}" onclick="selSlot('${s}')">${s}</div>`;
   }).join('');
+
+  // Bloquear slots ya reservados
   const fechaStr=fechaTexto(date),stf=STAFF.find(s=>s.id===sel.staff);
-  if(window._getTakenSlots){window._getTakenSlots(fechaStr,stf?stf.name:'',mins).then(filtrar=>{const bloqueados=typeof filtrar==='function'?filtrar(slots):filtrar;bloqueados.forEach(t=>{const el=document.getElementById('sl-'+t.replace(':','-'));if(el){el.classList.add('taken');el.onclick=null;if(sel.hora===t)sel.hora=null;}});});}
+  if(window._getTakenSlots){
+    window._getTakenSlots(fechaStr,stf?stf.name:'',mins).then(filtrar=>{
+      const bloqueados=typeof filtrar==='function'?filtrar(slots):filtrar;
+      bloqueados.forEach(t=>{
+        const el=document.getElementById('sl-'+t.replace(':','-'));
+        if(el){el.classList.add('taken');el.onclick=null;if(sel.hora===t)sel.hora=null;}
+      });
+    });
+  }
 }
 
 function selSlot(t){sel.hora=t;document.querySelectorAll('.slot').forEach(b=>b.classList.remove('selected'));const el=document.getElementById('sl-'+t.replace(':','-'));if(el)el.classList.add('selected');}
@@ -439,7 +478,12 @@ function goStep(n){
   if(n===4&&!sel.staff){alert('Selecciona una estilista.');return;}
   if(n===5&&!sel.fecha){alert('Selecciona una fecha en el calendario.');return;}
   if(n===5&&!sel.hora){alert('Selecciona una hora disponible.');return;}
-  if(n===4)buildCal();
+  if(n===4){
+    // Recargar disponibilidad desde Firebase antes de mostrar calendario
+    if(window._getDisponibilidad){
+      window._getDisponibilidad().then(cfg=>{if(cfg){_disponConfig=cfg;}buildCal();});
+    } else { buildCal(); }
+  }
   if(n===5)fillSummary();
   document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
   document.getElementById('step'+n).classList.add('active');

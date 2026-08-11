@@ -151,7 +151,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .cal-d-day.festivo::after{content:'';position:absolute;bottom:2px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:#D4A017;}
 .cal-d-day.hoy{border:2px solid #1B2B4B;}
 .cal-d-day.selected{background:var(--g)!important;color:#fff!important;font-weight:700;}
-.cal-d-day.pasado{opacity:.4;cursor:not-allowed;}
+/* pasado handled inline */
 /* Franja btn */
 .franja-btn{padding:8px 4px;text-align:center;background:var(--dark2);border:1.5px solid var(--gb);border-radius:var(--r);cursor:pointer;font-size:11px;color:var(--text);transition:all .2s;font-weight:500;}
 .franja-btn.activa{border-color:var(--g);background:rgba(212,160,23,.1);color:#7A5C00;font-weight:700;}
@@ -740,11 +740,12 @@ function buildCalDispon(){
     else if(esFestivo)cls+=' festivo';
     else if(disponible)cls+=' disponible';
     else cls+=' bloqueado';
-    if(esPasado)cls+=' pasado';
     if(esHoy)cls+=' hoy';
     if(esSelec)cls+=' selected';
-    const click=esDomingo?'':` onclick="selDiaDispon('${iso}')"`;
-    html+=`<div class="${cls}"${click} title="${iso}">${d}</div>`;
+    // Pasados: mostrar más tenues pero con su color correcto
+    const estilo=esPasado&&!esHoy?'opacity:.4;':''
+    const click=(esDomingo||esPasado)?'':` onclick="selDiaDispon('${iso}')"`;
+    html+=`<div class="${cls}" style="${estilo}" title="${iso}">${d}</div>`;
   }
   document.getElementById('cal-dispon-grid').innerHTML=html;
 }
