@@ -714,9 +714,8 @@ function isoDate(y,m,d){return y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).p
 
 function isDiaDisponAdm(iso){
   if(disponConfig.dias.hasOwnProperty(iso)) return disponConfig.dias[iso];
-  // Default: lunes a sábado disponible, domingo no
-  const dow=new Date(iso).getDay();
-  return dow!==0;
+  // Default: todos los días disponibles hasta que el admin configure
+  return true;
 }
 
 function buildCalDispon(){
@@ -729,23 +728,23 @@ function buildCalDispon(){
   for(let d=1;d<=daysInMonth;d++){
     const date=new Date(calDisponYear,calDisponMonth,d);date.setHours(0,0,0,0);
     const iso=isoDate(calDisponYear,calDisponMonth,d);
-    const esDomingo=date.getDay()===0;
     const esFestivo=FESTIVOS_SET.has(iso);
     const esPasado=date<hoy;
     const esHoy=date.getTime()===hoy.getTime();
     const esSelec=selectedDay===iso;
     const disponible=isDiaDisponAdm(iso);
     let cls='cal-d-day';
-    if(esDomingo)cls+=' domingo';
-    else if(esFestivo)cls+=' festivo';
-    else if(disponible)cls+=' disponible';
-    else cls+=' bloqueado';
+    // El admin decide todo - solo mostrar disponible/bloqueado/festivo como info visual
+    if(disponible){
+      cls+= esFestivo ? ' festivo' : ' disponible';
+    } else {
+      cls+=' bloqueado';
+    }
     if(esHoy)cls+=' hoy';
     if(esSelec)cls+=' selected';
-    // Pasados: mostrar más tenues pero con su color correcto
-    const estilo=esPasado&&!esHoy?'opacity:.4;':''
-    const click=(esDomingo||esPasado)?'':` onclick="selDiaDispon('${iso}')"`;
-    html+=`<div class="${cls}" style="${estilo}" title="${iso}">${d}</div>`;
+    const estilo=esPasado&&!esHoy?'opacity:.4;':'';
+    const click=esPasado?'':` onclick="selDiaDispon('${iso}')"`;
+    html+=`<div class="${cls}" style="${estilo}cursor:pointer;" title="${iso}">${d}</div>`;
   }
   document.getElementById('cal-dispon-grid').innerHTML=html;
 }

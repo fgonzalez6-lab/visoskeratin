@@ -351,11 +351,11 @@ function isoFecha(date){
   return date.getFullYear()+'-'+String(date.getMonth()+1).padStart(2,'0')+'-'+String(date.getDate()).padStart(2,'0');
 }
 function isDiaDisponible(dow, date){
-  if(dow===0)return false; // domingo siempre bloqueado
-  if(!_disponConfig||!_disponConfig.dias)return true; // sin config = todo disponible
+  if(!_disponConfig||!_disponConfig.dias)return dow!==0; // sin config = lun-sab por defecto
   const iso=date?isoFecha(date):null;
   if(iso && _disponConfig.dias.hasOwnProperty(iso)) return _disponConfig.dias[iso];
-  return true; // si no tiene config específica = disponible
+  // Si el admin no ha configurado ese día específico, usar default (lun-sab)
+  return dow!==0;
 }
 function isFranjaDisponible(hora){
   if(!_disponConfig||!_disponConfig.franjas)return true;
@@ -383,12 +383,12 @@ function buildCal(){
     const esHoy=date.getTime()===hoy.getTime();
     const esSelec=sel.fecha&&sel.fecha.toDateString()===date.toDateString();
     let cls='cal-day';
-    if(esDomingo||esBloqueado)cls+=' domingo';
+    if(esBloqueado)cls+=' domingo';
     else if(esFestivo)cls+=' festivo';
-    if(esPasado||esDomingo||esBloqueado)cls+=' past';
+    if(esPasado||esBloqueado)cls+=' past';
     if(esHoy)cls+=' today';
     if(esSelec)cls+=' selected';
-    const onclick=(esPasado||esDomingo||esBloqueado)?'':` onclick="selFecha(${calYear},${calMonth},${d})"`;
+    const onclick=(esPasado||esBloqueado)?'':` onclick="selFecha(${calYear},${calMonth},${d})"`;
     html+=`<div class="${cls}"${onclick}${esFestivo?' title="Festivo"':''}>${d}</div>`;
   }
   document.getElementById('calGrid').innerHTML=html;
