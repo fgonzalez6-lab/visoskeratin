@@ -351,14 +351,12 @@ function isoFecha(date){
   return date.getFullYear()+'-'+String(date.getMonth()+1).padStart(2,'0')+'-'+String(date.getDate()).padStart(2,'0');
 }
 function isDiaDisponible(dow, date){
-  // Si no hay config del admin, todos los días disponibles excepto domingo
-  if(!_disponConfig||!_disponConfig.dias||Object.keys(_disponConfig.dias).length===0){
-    return dow!==0;
-  }
   const iso=date?isoFecha(date):null;
   // Si el admin configuró este día específico, usar ese valor
-  if(iso && _disponConfig.dias.hasOwnProperty(iso)) return _disponConfig.dias[iso]===true;
-  // Si no está configurado específicamente, disponible por defecto
+  if(iso && _disponConfig && _disponConfig.dias && _disponConfig.dias.hasOwnProperty(iso)){
+    return _disponConfig.dias[iso]===true;
+  }
+  // Sin config específica = todos los días disponibles (el admin decide)
   return true;
 }
 function isFranjaDisponible(hora){

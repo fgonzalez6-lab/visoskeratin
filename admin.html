@@ -713,9 +713,10 @@ function setModo(modo, btn){
 function isoDate(y,m,d){return y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');}
 
 function isDiaDisponAdm(iso){
-  if(disponConfig.dias.hasOwnProperty(iso)) return disponConfig.dias[iso]===true;
-  // Default: todo disponible si no hay config
-  return true;
+  if(disponConfig && disponConfig.dias && disponConfig.dias.hasOwnProperty(iso)){
+    return disponConfig.dias[iso]===true;
+  }
+  return true; // sin config = disponible
 }
 
 function buildCalDispon(){
@@ -760,6 +761,7 @@ function selDiaDispon(iso){
   selectedDay=iso;
   const actual=isDiaDisponAdm(iso);
   const nuevo=!actual; // toggle
+  console.log('Toggle día:', iso, 'de', actual, 'a', nuevo);
 
   function aplicarDia(k, val){ disponConfig.dias[k]=val; }
 
