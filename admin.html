@@ -159,6 +159,17 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .modo-btn{padding:7px 14px;border-radius:20px;border:1.5px solid var(--gb);background:transparent;font-size:11px;cursor:pointer;color:var(--muted);transition:all .2s;font-family:'Montserrat',sans-serif;font-weight:500;}
 .modo-btn:hover{border-color:var(--g);}
 .modo-btn.active{background:rgba(212,160,23,.1);border-color:var(--g);color:#7A5C00;font-weight:600;}
+/* Horario tabs */
+.htab{padding:10px 18px;border:none;border-bottom:2px solid transparent;background:transparent;font-family:'Montserrat',sans-serif;font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;margin-bottom:-2px;transition:all .2s;}
+.htab.active{color:var(--g);border-bottom-color:var(--g);font-weight:700;}
+/* Fila día */
+.dia-row{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:.5px solid var(--gb);flex-wrap:wrap;}
+.dia-nombre{width:80px;font-size:13px;font-weight:600;color:var(--text);flex-shrink:0;}
+.btn-estado{padding:6px 14px;border-radius:6px;border:none;font-size:12px;font-weight:700;cursor:pointer;font-family:'Montserrat',sans-serif;min-width:90px;transition:all .2s;}
+.btn-abierta{background:#27AE60;color:#fff;}
+.btn-cerrada{background:#E74C3C;color:#fff;}
+.hora-select{background:#fff;border:1.5px solid var(--gb);border-radius:6px;padding:6px 8px;font-size:12px;color:var(--text);font-family:'Montserrat',sans-serif;outline:none;cursor:pointer;}
+.hora-select:focus{border-color:var(--g);}
 @keyframes fi{from{opacity:0;transform:translateY(5px);}to{opacity:1;transform:none;}}
 </style>
 </head>
@@ -236,64 +247,53 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
   <!-- DISPONIBILIDAD -->
   <div class="panel" id="p-disponibilidad">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:8px;">
-      <p class="sec-title" style="margin:0;">Gestión de disponibilidad</p>
-      <button class="btn-add" onclick="guardarDisponibilidad()" style="margin:0;">Guardar cambios</button>
+      <p class="sec-title" style="margin:0;">Horarios de Atención</p>
     </div>
 
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;">
-      <!-- Calendario mensual -->
-      <div style="background:#fff;border:1.5px solid var(--gb);border-radius:var(--r);overflow:hidden;box-shadow:0 1px 6px rgba(212,160,23,.06);">
-        <div style="background:var(--text);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;">
-          <button onclick="cambiarMesDispon(-1)" style="background:rgba(255,255,255,.15);border:none;color:#fff;cursor:pointer;padding:4px 10px;border-radius:6px;font-size:14px;">‹</button>
-          <span id="cal-dispon-title" style="font-size:14px;font-weight:600;color:#fff;letter-spacing:.5px;"></span>
-          <button onclick="cambiarMesDispon(1)" style="background:rgba(255,255,255,.15);border:none;color:#fff;cursor:pointer;padding:4px 10px;border-radius:6px;font-size:14px;">›</button>
-        </div>
-        <div style="display:grid;grid-template-columns:repeat(7,1fr);text-align:center;padding:8px 6px 4px;">
-          <span style="font-size:10px;color:var(--muted);font-weight:600;">D</span>
-          <span style="font-size:10px;color:var(--muted);font-weight:600;">L</span>
-          <span style="font-size:10px;color:var(--muted);font-weight:600;">M</span>
-          <span style="font-size:10px;color:var(--muted);font-weight:600;">X</span>
-          <span style="font-size:10px;color:var(--muted);font-weight:600;">J</span>
-          <span style="font-size:10px;color:var(--muted);font-weight:600;">V</span>
-          <span style="font-size:10px;color:var(--muted);font-weight:600;">S</span>
-        </div>
-        <div id="cal-dispon-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;padding:4px 6px 12px;"></div>
-        <div style="padding:0 10px 12px;display:flex;gap:10px;flex-wrap:wrap;">
-          <div style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--muted);">
-            <div style="width:10px;height:10px;border-radius:50%;background:var(--g);"></div>Disponible
-          </div>
-          <div style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--muted);">
-            <div style="width:10px;height:10px;border-radius:50%;background:#E8E4DC;border:1px solid #C8C4BC;"></div>No disponible
-          </div>
-          <div style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--muted);">
-            <div style="width:10px;height:10px;border-radius:50%;background:#FEF9EC;border:1px solid #F0D080;"></div>Festivo
-          </div>
-        </div>
-      </div>
-
-      <!-- Franjas horarias -->
-      <div style="background:#fff;border:1.5px solid var(--gb);border-radius:var(--r);padding:1.1rem;box-shadow:0 1px 6px rgba(212,160,23,.06);">
-        <p style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:10px;">Franjas horarias</p>
-        <p style="font-size:11px;color:var(--muted);margin-bottom:10px;">Toca para habilitar/deshabilitar</p>
-        <div id="franjas-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;"></div>
-      </div>
+    <!-- Tabs -->
+    <div style="border-bottom:2px solid var(--gb);margin-bottom:1.25rem;display:flex;gap:0;">
+      <button class="htab active" id="htab-general" onclick="showHTab('general')">Horarios de Atención</button>
     </div>
 
-    <!-- Modo de aplicación -->
-    <div style="background:#fff;border:1.5px solid var(--gb);border-radius:var(--r);padding:1.1rem;margin-bottom:1rem;box-shadow:0 1px 6px rgba(212,160,23,.06);">
-      <p style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:10px;">Modo de aplicación del día seleccionado</p>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        <button class="modo-btn active" id="modo-dia" onclick="setModo('dia',this)">Solo este día</button>
-        <button class="modo-btn" id="modo-semana" onclick="setModo('semana',this)">Esta semana</button>
-        <button class="modo-btn" id="modo-mes" onclick="setModo('mes',this)">Este mes</button>
-        <button class="modo-btn" id="modo-siempre" onclick="setModo('siempre',this)">Siempre (día de semana)</button>
+    <!-- Horario General -->
+    <div id="htab-general-content">
+      <!-- Selector de perfil -->
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:1.25rem;">
+        <select id="perfil-select" style="flex:1;background:#fff;border:1.5px solid var(--gb);border-radius:var(--r);padding:9px 12px;font-size:13px;color:var(--text);font-family:'Montserrat',sans-serif;outline:none;">
+          <option value="general">Horario General</option>
+        </select>
+        <button onclick="editarPerfil()" title="Editar nombre" style="padding:8px 10px;background:#fff;border:1.5px solid var(--gb);border-radius:var(--r);cursor:pointer;font-size:14px;">✏️</button>
+        <button onclick="eliminarPerfil()" title="Eliminar" style="padding:8px 10px;background:#fff;border:1.5px solid var(--gb);border-radius:var(--r);cursor:pointer;font-size:14px;">🗑️</button>
+        <button onclick="nuevoPerfil()" title="Nuevo perfil" style="padding:8px 12px;background:var(--g);border:none;border-radius:var(--r);cursor:pointer;font-size:16px;color:#fff;font-weight:700;">+</button>
       </div>
+
+      <!-- Estado actual -->
+      <div id="estado-actual" style="display:flex;align-items:center;gap:8px;margin-bottom:1.25rem;font-size:13px;color:var(--muted);background:#f9f6ef;border-radius:var(--r);padding:10px 14px;">
+        <span>⏱️</span><span id="hora-live-dispon"></span>
+        <span>Mi salón está actualmente</span>
+        <span id="estado-badge" style="padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;"></span>
+      </div>
+
+      <!-- Días de la semana -->
+      <div id="dias-horario" style="display:flex;flex-direction:column;gap:6px;margin-bottom:1.5rem;"></div>
+
+      <!-- Horarios Especiales -->
+      <div style="margin-bottom:1.25rem;">
+        <p style="font-size:13px;font-weight:600;color:var(--muted);margin-bottom:10px;">Horarios Especiales</p>
+        <div id="horarios-especiales" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px;"></div>
+        <button onclick="agregarEspecial()" style="background:transparent;border:none;color:var(--g);font-size:13px;font-weight:600;cursor:pointer;font-family:'Montserrat',sans-serif;padding:0;letter-spacing:.5px;">+ NUEVO HORARIO</button>
+      </div>
+
+      <!-- Guardar -->
+      <button class="btn-add" onclick="guardarDisponibilidad()" style="margin:0;width:auto;padding:10px 24px;">Guardar</button>
     </div>
   </div>
 
   <!-- EQUIPO -->
   <div class="panel" id="p-equipo">
-    <p class="sec-title">Equipo — resumen del día</p>
+    <p class="sec-title">Agenda abierta para</p>
+    <div class="staff-card" id="est-config"></div>
+    <p class="sec-title" style="margin-top:1.4rem;">Equipo — resumen del día</p>
     <div id="equipo"></div>
   </div>
 
@@ -318,7 +318,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
       </select>
     </div>
     <div class="mfield"><label>Estilista</label>
-      <select id="m-est"><option>Ana</option><option>Lucía</option><option>Camila</option></select>
+      <select id="m-est"></select>
     </div>
     <div class="two-col">
       <div class="mfield"><label>Hora inicio</label><input type="time" id="m-hora" value="09:00"/></div>
@@ -346,12 +346,25 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
     <div class="two-col">
       <div class="mfield"><label>Hora inicio</label><input type="time" id="r-hora" value="09:00"/></div>
       <div class="mfield"><label>Estilista</label>
-        <select id="r-est"><option>Ana</option><option>Lucía</option><option>Camila</option></select>
+        <select id="r-est"></select>
       </div>
     </div>
     <div class="modal-btns">
       <button class="btn-gh" onclick="cerrarReagendar()">Cancelar</button>
       <button class="btn-g" onclick="guardarReagendar()">Reagendar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL reprogramar por reducción de estilistas -->
+<div class="modal-wrap" id="modal-reprog">
+  <div class="modal" style="max-width:520px;">
+    <h3>Reprogramar citas afectadas</h3>
+    <p id="reprog-intro" style="font-size:12px;color:var(--muted);line-height:1.7;margin-bottom:1rem;"></p>
+    <div id="reprog-lista" style="max-height:320px;overflow-y:auto;"></div>
+    <div class="modal-btns">
+      <button class="btn-gh" onclick="cerrarReprog()">Cancelar</button>
+      <button class="btn-g" id="reprog-ok" onclick="confirmarReprog()">Confirmar y notificar</button>
     </div>
   </div>
 </div>
@@ -390,6 +403,14 @@ window._pushCita=function(cita){
   if(!db)return Promise.resolve(null);
   return push(ref(db,'citas'),cita).then(r=>r.key).catch(()=>null);
 };
+window._updateMulti=function(updates){
+  if(!db)return Promise.reject(new Error('Sin conexión a Firebase'));
+  return update(ref(db),updates);
+};
+window._listenEstilistas=function(cb){
+  if(!db){cb(null);return;}
+  onValue(ref(db,'config/estilistas'),snap=>{cb(snap.exists()?snap.val():null);});
+};
 window._saveDispon=function(config){
   if(!db)return Promise.resolve();
   return update(ref(db,'config/disponibilidad'),config).catch(e=>console.warn('Dispon save:',e));
@@ -397,6 +418,16 @@ window._saveDispon=function(config){
 window._loadDispon=function(cb){
   if(!db){cb(null);return;}
   onValue(ref(db,'config/disponibilidad'),snap=>{
+    cb(snap.exists()?snap.val():null);
+  },{onlyOnce:true});
+};
+window._saveHorario=function(config){
+  if(!db)return Promise.resolve();
+  return update(ref(db,'config/horario'),config).catch(e=>console.warn('Horario save:',e));
+};
+window._loadHorario=function(cb){
+  if(!db){cb(null);return;}
+  onValue(ref(db,'config/horario'),snap=>{
     cb(snap.exists()?snap.val():null);
   },{onlyOnce:true});
 };
@@ -419,6 +450,229 @@ const DEMO=[
 let CITAS=[];
 let filtro='todas',busq='';
 const LOG=[];
+
+// ── ESTILISTAS DINÁMICAS ─────────────────────────────────────────
+// Firebase: config/estilistas = { cantidad:N, nombres:{ e1:'Leidy', e2:'Estilista 2', ... } }
+// e1 es siempre la administradora. Cada cita guarda estilistaId (+ el nombre al momento de agendar).
+const MAX_ESTILISTAS=8;
+const MAX_DIAS_BUSQUEDA=30;
+const API_URL='https://visos-keratin-server-production.up.railway.app';
+// Citas anteriores a este cambio solo guardaban el nombre: se asocian a su id
+const LEGACY_EST={'Ana':'e1','Lucía':'e2','Camila':'e3'};
+const COLORES_EST=[
+  {bg:'rgba(45,110,78,0.2)',tc:'#D4A017'},
+  {bg:'rgba(201,168,76,0.12)',tc:'#e8c97a'},
+  {bg:'rgba(55,138,221,0.12)',tc:'#93c5fd'},
+  {bg:'rgba(168,85,247,0.12)',tc:'#c4a1f5'},
+  {bg:'rgba(236,72,153,0.12)',tc:'#f08ab8'},
+  {bg:'rgba(20,184,166,0.12)',tc:'#5fd1c4'},
+  {bg:'rgba(249,115,22,0.12)',tc:'#f6a566'},
+  {bg:'rgba(100,116,139,0.15)',tc:'#94a3b8'}
+];
+
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));}
+function nombreDefecto(i){return i===1?'Leidy':'Estilista '+i;}
+function normEstConfig(raw){
+  const nombres={};
+  for(let i=1;i<=MAX_ESTILISTAS;i++){
+    const v=raw&&raw.nombres?raw.nombres['e'+i]:null;
+    nombres['e'+i]=(typeof v==='string'&&v.trim())?v.trim().slice(0,30):nombreDefecto(i);
+  }
+  const cant=Math.min(MAX_ESTILISTAS,Math.max(1,Math.round(Number(raw&&raw.cantidad)||3)));
+  return {cantidad:cant,nombres};
+}
+let estConfig=normEstConfig(null);
+let estDraft=null,estDirty=false,_reprog=null;
+
+function iniciales(n){return String(n).trim().split(/\s+/).slice(0,2).map(w=>w.charAt(0)).join('').toUpperCase();}
+function estActivas(cfg){
+  cfg=cfg||estConfig;
+  const out=[];
+  for(let i=1;i<=cfg.cantidad;i++){
+    const nombre=cfg.nombres['e'+i],col=COLORES_EST[(i-1)%COLORES_EST.length];
+    out.push({id:'e'+i,nombre,rol:i===1?'Administradora':'Estilista',ini:iniciales(nombre),bg:col.bg,tc:col.tc});
+  }
+  return out;
+}
+function idEstDeCita(c){return c.estilistaId||LEGACY_EST[c.estilista]||null;}
+function nombreEstDeCita(c){return (c.estilistaId&&estConfig.nombres[c.estilistaId])||c.estilista||'—';}
+
+function poblarSelectsEst(){
+  ['m-est','r-est'].forEach(id=>{
+    const el=document.getElementById(id);if(!el)return;
+    const actual=el.value;
+    el.innerHTML=estActivas().map(s=>`<option value="${s.id}">${esc(s.nombre)}</option>`).join('');
+    if(estActivas().some(s=>s.id===actual))el.value=actual;
+  });
+}
+
+// ── Panel Equipo: cantidad y nombres ──
+function renderEstilistasConfig(){
+  const box=document.getElementById('est-config');if(!box)return;
+  if(!estDraft||!estDirty)estDraft={cantidad:estConfig.cantidad,nombres:{...estConfig.nombres}};
+  let opts='';
+  for(let n=1;n<=MAX_ESTILISTAS;n++)opts+=`<option value="${n}"${n===estDraft.cantidad?' selected':''}>${n} ${n===1?'estilista':'estilistas'}</option>`;
+  let inputs='';
+  for(let i=1;i<=estDraft.cantidad;i++){
+    inputs+=`<div class="mfield"><label>Estilista ${i}${i===1?' · Administradora':''}</label><input type="text" maxlength="30" value="${esc(estDraft.nombres['e'+i])}" oninput="estNombreInput(${i},this.value)"/></div>`;
+  }
+  box.innerHTML=`<div class="mfield"><label>Agenda abierta para</label><select onchange="estCantidadChange(this.value)">${opts}</select></div>
+    ${inputs}
+    <p style="font-size:11px;color:var(--muted);margin:0 0 12px;line-height:1.6;">Los cambios se reflejan a las clientas al elegir estilista. Si reduces la cantidad y hay citas futuras con las estilistas que se cierran, se propondrá reprogramarlas a quienes tengan disponibilidad.</p>
+    <div class="modal-btns"><button class="btn-g" onclick="guardarEstilistas()">Guardar cambios</button></div>`;
+}
+function estNombreInput(i,v){estDraft.nombres['e'+i]=v;estDirty=true;}
+function estCantidadChange(v){estDraft.cantidad=Number(v);estDirty=true;renderEstilistasConfig();}
+
+async function guardarEstilistas(){
+  if(!estDraft)return;
+  const cant=estDraft.cantidad;
+  const nombres={},vistos=new Set();
+  for(let i=1;i<=MAX_ESTILISTAS;i++){
+    const v=String(estDraft.nombres['e'+i]||'').trim().slice(0,30);
+    if(i<=cant){
+      if(!v){alert('El nombre de la estilista '+i+' no puede estar vacío.');return;}
+      const k=v.toLowerCase();
+      if(vistos.has(k)){alert('Hay dos estilistas llamadas "'+v+'". Usa nombres distintos para que las clientas las diferencien.');return;}
+      vistos.add(k);
+    }
+    nombres['e'+i]=v||nombreDefecto(i);
+  }
+  const conf={cantidad:cant,nombres};
+  if(cant<estConfig.cantidad){
+    const cerradas=new Set();
+    for(let i=cant+1;i<=MAX_ESTILISTAS;i++)cerradas.add('e'+i);
+    const afectadas=CITAS.filter(c=>esCitaReal(c)&&citaVigente(c)&&cerradas.has(idEstDeCita(c)));
+    if(afectadas.length){await abrirReprogramacion(conf,afectadas);return;}
+  }
+  await persistirEstilistas(conf,{},0);
+}
+
+async function persistirEstilistas(conf,extra,movidas){
+  const upd={...extra,'config/estilistas':conf};
+  try{await window._updateMulti(upd);}
+  catch(e){console.warn('Equipo:',e);toast('❌ No se pudo guardar. Revisa tu conexión e intenta de nuevo.',true);return false;}
+  estConfig=normEstConfig(conf);estDirty=false;
+  poblarSelectsEst();renderAll();renderEstilistasConfig();
+  LOG.unshift({t:hora(),x:'Equipo actualizado',s:estConfig.cantidad+(estConfig.cantidad===1?' estilista':' estilistas')+' con agenda abierta'+(movidas?' · '+movidas+' cita(s) reprogramada(s)':'')});
+  renderTimeline();
+  toast('✅ Equipo guardado — ya se refleja en la app de clientas');
+  return true;
+}
+
+// ── Reprogramación al reducir estilistas ──
+function parseFechaCita(fs){const m=/(\d{1,2})\/(\d{1,2})\/(\d{4})/.exec(fs||'');return m?new Date(+m[3],+m[2]-1,+m[1]):null;}
+function fechaTextoD(d){return DIAS[d.getDay()]+' '+d.getDate()+'/'+(d.getMonth()+1)+'/'+d.getFullYear();}
+function isoDia(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function aMin(t){const p=String(t||'0:0').split(':').map(Number);return p[0]*60+(p[1]||0);}
+function deMin(m){return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0');}
+function esCitaReal(c){return !!(c&&c._key&&!/^(d\d+|m-)/.test(c._key));}
+function citaVigente(c){
+  if(c.estado==='cancelada')return false;
+  const f=parseFechaCita(c.fecha);if(!f)return false;
+  const mm=aMin(c.horaFin||c.horaInicio);
+  f.setHours(Math.floor(mm/60),mm%60,0,0);
+  return f>new Date();
+}
+function cfgDiaAdmin(d){
+  const iso=isoDia(d),dow=d.getDay();
+  if(horarioConfig.especiales&&horarioConfig.especiales[iso])return horarioConfig.especiales[iso];
+  if(horarioConfig.general&&horarioConfig.general[dow]!=null)return horarioConfig.general[dow];
+  return {abierta:true,inicio:'07:00',fin:'17:00'};
+}
+
+// Para cada cita: 1) mismo día y hora con otra estilista libre; 2) si no, los días siguientes
+// (misma hora primero, luego la primera hora libre), respetando el horario del admin y 24 h de antelación.
+function proponerReprogramaciones(afectadas,activasIds,nombres){
+  const ahora=new Date();
+  const ocupadas=[];
+  CITAS.forEach(c=>{
+    if(c.estado==='cancelada')return;
+    const id=idEstDeCita(c);if(!activasIds.includes(id))return;
+    const f=parseFechaCita(c.fecha);if(!f)return;
+    ocupadas.push({id,iso:isoDia(f),s:aMin(c.horaInicio),e:aMin(c.horaFin)});
+  });
+  const libre=(id,iso,s,e)=>!ocupadas.some(o=>o.id===id&&o.iso===iso&&s<o.e&&e>o.s);
+  const carga=(id,iso)=>ocupadas.filter(o=>o.id===id&&o.iso===iso).length;
+  const ordenadas=[...afectadas].sort((a,b)=>(parseFechaCita(a.fecha)-parseFechaCita(b.fecha))||(aMin(a.horaInicio)-aMin(b.horaInicio)));
+  return ordenadas.map(c=>{
+    const f0=parseFechaCita(c.fecha),s0=aMin(c.horaInicio),dur=Math.max(15,aMin(c.horaFin)-s0);
+    const pick=(d,s)=>{
+      const cfg=cfgDiaAdmin(d);
+      if(!cfg||cfg.abierta!==true)return null;
+      if(s<aMin(cfg.inicio||'07:00')||s+dur>aMin(cfg.fin||'17:00'))return null;
+      const iso=isoDia(d);
+      const dt=new Date(d);dt.setHours(Math.floor(s/60),s%60,0,0);
+      const ids=activasIds.filter(id=>libre(id,iso,s,s+dur)).sort((a,b)=>carga(a,iso)-carga(b,iso));
+      return ids.length?{id:ids[0],d,iso,s,e:s+dur,dt}:null;
+    };
+    let h=null;
+    const mismo=new Date(f0);mismo.setHours(Math.floor(s0/60),s0%60,0,0);
+    if(mismo>ahora)h=pick(f0,s0);
+    for(let off=1;off<=MAX_DIAS_BUSQUEDA&&!h;off++){
+      const d=new Date(f0);d.setDate(d.getDate()+off);
+      const cfg=cfgDiaAdmin(d);if(!cfg||cfg.abierta!==true)continue;
+      const ini=aMin(cfg.inicio||'07:00'),fin=aMin(cfg.fin||'17:00');
+      const cand=[s0];
+      for(let m=ini;m+dur<=fin;m+=30)if(m!==s0)cand.push(m);
+      for(const s of cand){
+        const p=pick(d,s);
+        if(p&&(p.dt-ahora)>=24*3600*1000){h=p;break;}
+      }
+    }
+    if(h)ocupadas.push({id:h.id,iso:h.iso,s:h.s,e:h.e});
+    return {c,nuevo:h?{id:h.id,nombre:nombres[h.id],fecha:fechaTextoD(h.d),horaInicio:deMin(h.s),horaFin:deMin(h.e)}:null};
+  });
+}
+
+async function abrirReprogramacion(conf,afectadas){
+  // horario siempre fresco desde Firebase
+  await new Promise(res=>{
+    if(!window._loadHorario){res();return;}
+    const t=setTimeout(res,4000);
+    window._loadHorario(cfg=>{clearTimeout(t);if(cfg)horarioConfig=cfg;res();});
+  });
+  const ids=estActivas(conf).map(s=>s.id);
+  const props=proponerReprogramaciones(afectadas,ids,conf.nombres);
+  _reprog={conf,props};
+  const sin=props.filter(p=>!p.nuevo).length;
+  document.getElementById('reprog-intro').innerHTML=sin===0
+    ?`Al cerrar la agenda de las últimas estilistas hay <strong>${props.length}</strong> cita${props.length===1?'':'s'} futura${props.length===1?'':'s'} que se moverán a estilistas con disponibilidad. Al confirmar se avisa por WhatsApp a cada clienta y a ti.`
+    :`<strong>${sin}</strong> cita${sin===1?'':'s'} no tiene${sin===1?'':'n'} cupo en los próximos ${MAX_DIAS_BUSQUEDA} días. Cancela y reagenda esa${sin===1?'':'s'} cita${sin===1?'':'s'} manualmente antes de reducir el equipo.`;
+  document.getElementById('reprog-lista').innerHTML=props.map(({c,nuevo})=>`
+    <div style="padding:10px 12px;border:.5px solid rgba(212,160,23,.25);border-radius:8px;margin-bottom:8px;font-size:12px;line-height:1.7;">
+      <strong>${esc(c.nombre)}</strong> · ${esc(c.servicios||c.servicio||'—')}<br>
+      <span style="color:var(--muted);">Antes: ${esc(c.fecha)} ${esc(c.horaInicio)} · ${esc(nombreEstDeCita(c))}</span><br>
+      ${nuevo?`<span style="color:#2D6E4E;font-weight:600;">Después: ${esc(nuevo.fecha)} ${esc(nuevo.horaInicio)} · ${esc(nuevo.nombre)}</span>`:`<span style="color:#b91c1c;font-weight:600;">Sin cupo disponible</span>`}
+    </div>`).join('');
+  const ok=document.getElementById('reprog-ok');
+  ok.disabled=sin>0;ok.style.opacity=sin>0?'.4':'1';ok.textContent='Confirmar y notificar';
+  document.getElementById('modal-reprog').classList.add('open');
+}
+function cerrarReprog(){document.getElementById('modal-reprog').classList.remove('open');_reprog=null;}
+
+async function confirmarReprog(){
+  if(!_reprog)return;
+  const {conf,props}=_reprog;
+  if(props.some(p=>!p.nuevo))return;
+  const ok=document.getElementById('reprog-ok');ok.disabled=true;ok.textContent='Guardando…';
+  const extra={};
+  props.forEach(({c,nuevo})=>{
+    const b='citas/'+c._key+'/';
+    extra[b+'fecha']=nuevo.fecha;extra[b+'horaInicio']=nuevo.horaInicio;extra[b+'horaFin']=nuevo.horaFin;
+    extra[b+'estilista']=nuevo.nombre;extra[b+'estilistaId']=nuevo.id;
+    extra[b+'reprogramadaDe']={fecha:c.fecha||'',horaInicio:c.horaInicio||'',estilista:nombreEstDeCita(c)};
+  });
+  const avisos=props.map(({c,nuevo})=>({
+    nombre:c.nombre||'',telefono:String(c.telefono||c.tel||''),servicios:c.servicios||c.servicio||'',
+    fechaAnterior:c.fecha||'',horaAnterior:c.horaInicio||'',estilistaAnterior:nombreEstDeCita(c),
+    fecha:nuevo.fecha,horaInicio:nuevo.horaInicio,horaFin:nuevo.horaFin,estilista:nuevo.nombre,firebaseKey:c._key
+  }));
+  const guardado=await persistirEstilistas(conf,extra,props.length);
+  if(!guardado){ok.disabled=false;ok.textContent='Confirmar y notificar';return;}
+  avisos.forEach(a=>{fetch(API_URL+'/reprogramar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(a)}).catch(e=>console.warn('Notif reprogramación:',e));});
+  cerrarReprog();
+}
 
 function togglePass(){
   const inp=document.getElementById('inp-pass');
@@ -455,6 +709,8 @@ if(sessionStorage.getItem('vk_admin')==='1'){
 
 function initApp(){
   tickReloj();setInterval(tickReloj,15000);
+  poblarSelectsEst();renderEstilistasConfig();
+  if(window._listenEstilistas){window._listenEstilistas(function(cfg){estConfig=normEstConfig(cfg);poblarSelectsEst();renderAll();renderEstilistasConfig();});}
   // Cargar disponibilidad desde Firebase
   if(window._loadDispon){
     window._loadDispon(function(config){
@@ -515,9 +771,9 @@ function renderCitaHTML(c){
   return`<div class="cc" id="cc-${c._key}">
     <div class="cc-bar ${barC(c.estado)}"></div>
     <div>
-      <div class="cc-nom">${c.nombre}</div>
-      <div class="cc-svc">🌿 ${svcText}</div>
-      <div class="cc-inf">👩‍🎨 ${c.estilista} &nbsp;·&nbsp; 📞 ${c.tel||c.telefono||'—'}</div>
+      <div class="cc-nom">${esc(c.nombre)}</div>
+      <div class="cc-svc">🌿 ${esc(svcText)}</div>
+      <div class="cc-inf">👩‍🎨 ${esc(nombreEstDeCita(c))} &nbsp;·&nbsp; 📞 ${esc(c.tel||c.telefono||'—')}</div>
       <span class="badge ${badgeC(c.estado)}">${badgeL(c.estado)}</span>
       <div class="acts">
         ${c.estado==='pendiente'?`<button class="ab ok" onclick="cambiar('${c._key}','confirmada')">✓ Confirmar</button>`:''}
@@ -558,21 +814,16 @@ function renderAgenda(){
 }
 
 function renderEquipo(){
-  const STAFF=[
-    {name:'Ana',role:'Dueña',ini:'AN',bg:'rgba(45,110,78,0.2)',tc:'#D4A017'},
-    {name:'Lucía',role:'Estilista',ini:'LU',bg:'rgba(201,168,76,0.12)',tc:'#e8c97a'},
-    {name:'Camila',role:'Estilista',ini:'CA',bg:'rgba(55,138,221,0.12)',tc:'#93c5fd'},
-  ];
   const hoy=hoyStr();
-  document.getElementById('equipo').innerHTML=STAFF.map(s=>{
-    const citas=CITAS.filter(c=>c.estilista===s.name&&c.fecha===hoy&&c.estado!=='cancelada');
+  document.getElementById('equipo').innerHTML=estActivas().map(s=>{
+    const citas=CITAS.filter(c=>idEstDeCita(c)===s.id&&c.fecha===hoy&&c.estado!=='cancelada');
     return`<div class="staff-card">
       <div class="sr"><div class="sl2">
-        <div class="sa" style="background:${s.bg};color:${s.tc};">${s.ini}</div>
-        <div><div class="sn">${s.name}</div><div class="srl">${s.role}</div></div>
+        <div class="sa" style="background:${s.bg};color:${s.tc};">${esc(s.ini)}</div>
+        <div><div class="sn">${esc(s.nombre)}</div><div class="srl">${s.rol}</div></div>
       </div>
       <div style="text-align:right"><div class="sv-num">${citas.length}</div><div class="sv-lbl">citas hoy</div></div></div>
-      <div style="margin-top:8px;">${citas.map(c=>`<div style="font-size:12px;color:var(--muted);padding:3px 0;">${c.horaInicio} · <span style="color:#D4A017;">${c.servicios||c.servicio||'—'}</span> · <span class="badge ${badgeC(c.estado)}" style="font-size:9px;">${badgeL(c.estado)}</span></div>`).join('')||'<div style="font-size:12px;color:var(--muted);">Sin citas hoy</div>'}</div>
+      <div style="margin-top:8px;">${citas.map(c=>`<div style="font-size:12px;color:var(--muted);padding:3px 0;">${esc(c.horaInicio)} · <span style="color:#D4A017;">${esc(c.servicios||c.servicio||'—')}</span> · <span class="badge ${badgeC(c.estado)}" style="font-size:9px;">${badgeL(c.estado)}</span></div>`).join('')||'<div style="font-size:12px;color:var(--muted);">Sin citas hoy</div>'}</div>
     </div>`;
   }).join('');
 }
@@ -582,7 +833,7 @@ function renderTimeline(){
   const all=[...LOG,...base];
   document.getElementById('timeline').innerHTML=all.map(e=>`
     <div class="tli"><div class="tld"></div>
-      <div class="tlt">${e.t}</div><div class="tlx">${e.x}</div><div class="tls">${e.s}</div>
+      <div class="tlt">${e.t}</div><div class="tlx">${esc(e.x)}</div><div class="tls">${esc(e.s)}</div>
     </div>`).join('');
 }
 
@@ -598,7 +849,7 @@ async function cambiar(key,nuevoEstado){
 
 function buscar(v){busq=v.toLowerCase();renderAgenda();}
 function setFiltro(f,btn){filtro=f;document.querySelectorAll('.fb').forEach(b=>b.classList.remove('on'));btn.classList.add('on');renderAgenda();}
-function showP(id,btn){document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));document.querySelectorAll('.nt').forEach(b=>b.classList.remove('on'));document.getElementById('p-'+id).classList.add('on');btn.classList.add('on');if(id==='agenda')renderAgenda();if(id==='disponibilidad')renderDisponibilidad();}
+function showP(id,btn){document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));document.querySelectorAll('.nt').forEach(b=>b.classList.remove('on'));document.getElementById('p-'+id).classList.add('on');btn.classList.add('on');if(id==='agenda')renderAgenda();if(id==='disponibilidad')renderDisponibilidad();if(id==='equipo')renderEstilistasConfig();}
 function abrirModal(){document.getElementById('modal').classList.add('open');}
 function cerrarModal(){document.getElementById('modal').classList.remove('open');}
 
@@ -606,13 +857,14 @@ async function guardarCita(){
   const nom=document.getElementById('m-nom').value.trim();
   const tel=document.getElementById('m-tel').value.trim();
   const svc=document.getElementById('m-svc').value;
-  const est=document.getElementById('m-est').value;
+  const estId=document.getElementById('m-est').value;
+  const est=estConfig.nombres[estId]||estId;
   const horaV=document.getElementById('m-hora').value;
   const estadoV=document.getElementById('m-estado').value;
   if(!nom||!svc||!horaV){alert('Completa nombre, servicio y hora.');return;}
   const mins=DUR[svc]||60;
   const fin=addMins(horaV,mins);
-  const nueva={nombre:nom,tel:tel||'—',servicios:svc,estilista:est,fecha:hoyStr(),horaInicio:horaV,horaFin:fin,estado:estadoV,creadoEn:new Date().toISOString()};
+  const nueva={nombre:nom,tel:tel||'—',servicios:svc,estilista:est,estilistaId:estId,fecha:hoyStr(),horaInicio:horaV,horaFin:fin,estado:estadoV,creadoEn:new Date().toISOString()};
   if(window._pushCita)await window._pushCita(nueva);
   else{nueva._key='m-'+Date.now();CITAS.push(nueva);renderAll();}
   LOG.unshift({t:hora(),x:'✨ Cita manual agregada',s:nom+' · '+svc+' · '+horaV});
@@ -636,8 +888,8 @@ function abrirReagendar(key){
   const c=CITAS.find(c=>c._key===key);if(!c)return;
   _reagendarKey=key;
   document.getElementById('reagendar-info').innerHTML=
-    `<strong>${c.nombre}</strong> · ${c.tel||c.telefono||'—'}<br>
-     Cita anterior: ${c.servicios||'—'} · ${c.fecha} ${c.horaInicio}`;
+    `<strong>${esc(c.nombre)}</strong> · ${esc(c.tel||c.telefono||'—')}<br>
+     Cita anterior: ${esc(c.servicios||'—')} · ${esc(c.fecha)} ${esc(c.horaInicio)}`;
   // Build service checkboxes pre-selected with current services
   const actuales=new Set((c.servicios||'').split(',').map(s=>s.trim()));
   document.getElementById('reagendar-svcs').innerHTML=SVCS_LIST.map(s=>`
@@ -650,7 +902,8 @@ function abrirReagendar(key){
   document.getElementById('r-fecha').min=tom.toISOString().split('T')[0];
   document.getElementById('r-fecha').value='';
   document.getElementById('r-hora').value='09:00';
-  document.getElementById('r-est').value=c.estilista||'Ana';
+  poblarSelectsEst();
+  {const idc=idEstDeCita(c);document.getElementById('r-est').value=(idc&&estActivas().some(s=>s.id===idc))?idc:estActivas()[0].id;}
   document.getElementById('modal-reagendar').classList.add('open');
 }
 
@@ -682,7 +935,7 @@ async function guardarReagendar(){
   const [hh,mm]=horaVal.split(':').map(Number);
   const tot=hh*60+mm+totalMin;
   const fin=String(Math.floor(tot/60)).padStart(2,'0')+':'+String(tot%60).padStart(2,'0');
-  const updates={estado:'pendiente',servicios:selSvcs.join(', '),estilista:estVal,fecha:fechaStr,horaInicio:horaVal,horaFin:fin,duracion:totalMin};
+  const updates={estado:'pendiente',servicios:selSvcs.join(', '),estilista:(estConfig.nombres[estVal]||estVal),estilistaId:estVal,fecha:fechaStr,horaInicio:horaVal,horaFin:fin,duracion:totalMin};
   if(window._updateCita)await window._updateCita(_reagendarKey,updates);
   else{const c=CITAS.find(c=>c._key===_reagendarKey);if(c)Object.assign(c,updates);renderAll();}
   LOG.unshift({t:hora(),x:'Cita reagendada',s:`${fechaStr} · ${horaVal} · ${selSvcs.join(', ')}`});
@@ -690,159 +943,184 @@ async function guardarReagendar(){
 }
 
 // ── DISPONIBILIDAD ──────────────────────────────────────────────
-const FESTIVOS_SET=new Set(['2025-01-01','2025-01-06','2025-03-24','2025-04-17','2025-04-18','2025-05-01','2025-06-02','2025-06-23','2025-06-30','2025-07-20','2025-08-07','2025-08-18','2025-10-13','2025-11-03','2025-11-17','2025-12-08','2025-12-25','2026-01-01','2026-01-12','2026-03-23','2026-04-02','2026-04-03','2026-05-01','2026-05-18','2026-06-08','2026-06-15','2026-06-29','2026-07-20','2026-08-07','2026-08-17','2026-10-12','2026-11-02','2026-11-16','2026-12-08','2026-12-25']);
-const MESES_D=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-const FRANJAS_BASE=[];
-for(let h=7;h<17;h++)for(let m=0;m<60;m+=30)FRANJAS_BASE.push(String(h).padStart(2,'0')+':'+String(m).padStart(2,'0'));
+const DIAS_NOMBRES = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+const FESTIVOS_COL = ['2026-01-01','2026-01-12','2026-03-23','2026-04-02','2026-04-03','2026-05-01','2026-05-18','2026-06-08','2026-06-15','2026-06-29','2026-07-20','2026-08-07','2026-08-17','2026-10-12','2026-11-02','2026-11-16','2026-12-08','2026-12-25','2027-01-01'];
 
-// disponConfig: { dias: { "2026-08-10": true/false, ... }, franjas: { "08:00": true/false, ... } }
-let disponConfig = {dias:{}, franjas:{}};
-// Inicializar franjas — todas activas por defecto
-FRANJAS_BASE.forEach(f=>disponConfig.franjas[f]=true);
+// Estructura guardada en Firebase: config/horario
+// { general: { 0:{abierta:false}, 1:{abierta:true,inicio:'07:00',fin:'16:00'}, ... },
+//   especiales: { '2026-10-12':{abierta:false,nota:'Festivo'}, ... } }
 
-let calDisponYear=new Date().getFullYear(), calDisponMonth=new Date().getMonth();
-let selectedDay=null;
-let modoAplicacion='dia'; // 'dia', 'semana', 'mes', 'siempre'
+let horarioConfig = {
+  general: {
+    0:{abierta:false,inicio:'00:00',fin:'24:00'},
+    1:{abierta:true,inicio:'07:00',fin:'17:00'},
+    2:{abierta:true,inicio:'07:00',fin:'17:00'},
+    3:{abierta:true,inicio:'07:00',fin:'17:00'},
+    4:{abierta:true,inicio:'07:00',fin:'17:00'},
+    5:{abierta:true,inicio:'07:00',fin:'17:00'},
+    6:{abierta:false,inicio:'00:00',fin:'24:00'}
+  },
+  especiales: {}
+};
 
-function setModo(modo, btn){
-  modoAplicacion=modo;
-  document.querySelectorAll('.modo-btn').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-}
-
-function isoDate(y,m,d){return y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');}
-
-function isDiaDisponAdm(iso){
-  if(disponConfig && disponConfig.dias && disponConfig.dias.hasOwnProperty(iso)){
-    return disponConfig.dias[iso]===true;
-  }
-  return true; // sin config = disponible
-}
-
-function buildCalDispon(){
-  const hoy=new Date();hoy.setHours(0,0,0,0);
-  document.getElementById('cal-dispon-title').textContent=MESES_D[calDisponMonth]+' '+calDisponYear;
-  const firstDay=new Date(calDisponYear,calDisponMonth,1).getDay();
-  const daysInMonth=new Date(calDisponYear,calDisponMonth+1,0).getDate();
-  let html='';
-  for(let i=0;i<firstDay;i++) html+=`<div class="cal-d-day" style="cursor:default;"></div>`;
-  for(let d=1;d<=daysInMonth;d++){
-    const date=new Date(calDisponYear,calDisponMonth,d);date.setHours(0,0,0,0);
-    const iso=isoDate(calDisponYear,calDisponMonth,d);
-    const esFestivo=FESTIVOS_SET.has(iso);
-    const esPasado=date<hoy;
-    const esHoy=date.getTime()===hoy.getTime();
-    const esSelec=selectedDay===iso;
-    const disponible=isDiaDisponAdm(iso);
-    let cls='cal-d-day';
-    // El admin decide todo - solo mostrar disponible/bloqueado/festivo como info visual
-    if(disponible){
-      cls+= esFestivo ? ' festivo' : ' disponible';
-    } else {
-      cls+=' bloqueado';
-    }
-    if(esHoy)cls+=' hoy';
-    if(esSelec)cls+=' selected';
-    const estilo=esPasado&&!esHoy?'opacity:.4;':'';
-    const click=esPasado?'':` onclick="selDiaDispon('${iso}')"`;
-    html+=`<div class="${cls}" style="${estilo}cursor:pointer;" title="${iso}">${d}</div>`;
-  }
-  document.getElementById('cal-dispon-grid').innerHTML=html;
-}
-
-function cambiarMesDispon(dir){
-  calDisponMonth+=dir;
-  if(calDisponMonth>11){calDisponMonth=0;calDisponYear++;}
-  if(calDisponMonth<0){calDisponMonth=11;calDisponYear--;}
-  buildCalDispon();
-}
-
-function selDiaDispon(iso){
-  selectedDay=iso;
-  const actual=isDiaDisponAdm(iso);
-  const nuevo=!actual; // toggle
-  console.log('Toggle día:', iso, 'de', actual, 'a', nuevo);
-
-  function aplicarDia(k, val){ disponConfig.dias[k]=val; }
-
-  if(modoAplicacion==='dia'){
-    aplicarDia(iso, nuevo);
-
-  } else if(modoAplicacion==='semana'){
-    // Toda la semana (dom a sab) que contiene el día seleccionado
-    const date=new Date(iso+'T12:00:00');
-    const dow=date.getDay();
-    const inicioSemana=new Date(date);
-    inicioSemana.setDate(date.getDate()-dow); // domingo de esa semana
-    for(let i=0;i<7;i++){
-      const d=new Date(inicioSemana);
-      d.setDate(inicioSemana.getDate()+i);
-      aplicarDia(isoDate(d.getFullYear(),d.getMonth(),d.getDate()), nuevo);
-    }
-
-  } else if(modoAplicacion==='mes'){
-    // Todo el mes
-    const date=new Date(iso+'T12:00:00');
-    const y=date.getFullYear(),m=date.getMonth();
-    const days=new Date(y,m+1,0).getDate();
-    for(let d=1;d<=days;d++){
-      aplicarDia(isoDate(y,m,d), nuevo);
-    }
-
-  } else if(modoAplicacion==='siempre'){
-    // Mismo día de semana por los próximos 6 meses
-    const date=new Date(iso+'T12:00:00');
-    const dow=date.getDay();
-    const hoy=new Date();
-    for(let i=0;i<=180;i++){
-      const d=new Date(hoy);
-      d.setDate(hoy.getDate()+i);
-      if(d.getDay()===dow){
-        aplicarDia(isoDate(d.getFullYear(),d.getMonth(),d.getDate()), nuevo);
-      }
+function generarOpciones(seleccionado){
+  let opts = '';
+  for(let h=0;h<25;h++){
+    for(let m=0;m<60;m+=30){
+      if(h===24&&m>0)break;
+      const val = String(h).padStart(2,'0')+':'+String(m).padStart(2,'0');
+      opts += `<option value="${val}"${val===seleccionado?' selected':''}>${val}</option>`;
     }
   }
-  buildCalDispon();
+  return opts;
 }
 
-function renderFranjas(){
-  const el=document.getElementById('franjas-grid');
-  if(!el)return;
-  el.innerHTML=FRANJAS_BASE.map(f=>`
-    <div class="franja-btn${disponConfig.franjas[f]!==false?' activa':''}" onclick="toggleFranja('${f}')" id="fr-${f.replace(':','-')}">${f}</div>`).join('');
+function buildDiasHorario(){
+  const cont = document.getElementById('dias-horario');
+  if(!cont) return;
+  let html = '';
+  for(let d=0;d<7;d++){
+    const cfg = horarioConfig.general[d]||{abierta:false,inicio:'00:00',fin:'24:00'};
+    html += `<div class="dia-row">
+      <span class="dia-nombre">${DIAS_NOMBRES[d]}</span>
+      <button class="btn-estado ${cfg.abierta?'btn-abierta':'btn-cerrada'}" onclick="toggleDiaGeneral(${d})" id="btn-dia-${d}">
+        ${cfg.abierta?'Abierta ▾':'Cerrada ▾'}
+      </button>
+      <select class="hora-select" id="inicio-${d}" onchange="cambiarHora(${d},'inicio',this.value)" ${!cfg.abierta?'disabled':''}>
+        ${generarOpciones(cfg.inicio||'07:00')}
+      </select>
+      <select class="hora-select" id="fin-${d}" onchange="cambiarHora(${d},'fin',this.value)" ${!cfg.abierta?'disabled':''}>
+        ${generarOpciones(cfg.fin||'17:00')}
+      </select>
+    </div>`;
+  }
+  cont.innerHTML = html;
 }
 
-function toggleFranja(f){
-  disponConfig.franjas[f]=disponConfig.franjas[f]===false?true:false;
-  const el=document.getElementById('fr-'+f.replace(':','-'));
-  if(el)el.classList.toggle('activa',disponConfig.franjas[f]!==false);
+function toggleDiaGeneral(d){
+  if(!horarioConfig.general[d]) horarioConfig.general[d]={abierta:false,inicio:'07:00',fin:'17:00'};
+  horarioConfig.general[d].abierta = !horarioConfig.general[d].abierta;
+  const abierta = horarioConfig.general[d].abierta;
+  const btn = document.getElementById('btn-dia-'+d);
+  btn.className = 'btn-estado '+(abierta?'btn-abierta':'btn-cerrada');
+  btn.textContent = abierta?'Abierta ▾':'Cerrada ▾';
+  document.getElementById('inicio-'+d).disabled = !abierta;
+  document.getElementById('fin-'+d).disabled = !abierta;
 }
+
+function cambiarHora(d, tipo, val){
+  if(!horarioConfig.general[d]) horarioConfig.general[d]={abierta:true,inicio:'07:00',fin:'17:00'};
+  horarioConfig.general[d][tipo] = val;
+}
+
+function buildEspeciales(){
+  const cont = document.getElementById('horarios-especiales');
+  if(!cont) return;
+  const especiales = horarioConfig.especiales||{};
+  let html = '';
+  Object.entries(especiales).sort().forEach(([fecha, cfg])=>{
+    const parts = fecha.split('-');
+    const fechaDisplay = parts[2]+'/'+parts[1]+'/'+parts[0];
+    html += `<div class="dia-row" id="esp-${fecha}">
+      <span class="dia-nombre" style="width:100px;font-size:12px;">${fechaDisplay}</span>
+      <button class="btn-estado ${cfg.abierta?'btn-abierta':'btn-cerrada'}" onclick="toggleEspecial('${fecha}')" id="btn-esp-${fecha}">
+        ${cfg.abierta?'Abierta ▾':'Cerrada ▾'}
+      </button>
+      <select class="hora-select" id="esp-inicio-${fecha}" onchange="cambiarHoraEspecial('${fecha}','inicio',this.value)" ${!cfg.abierta?'disabled':''}>
+        ${generarOpciones(cfg.inicio||'07:00')}
+      </select>
+      <select class="hora-select" id="esp-fin-${fecha}" onchange="cambiarHoraEspecial('${fecha}','fin',this.value)" ${!cfg.abierta?'disabled':''}>
+        ${generarOpciones(cfg.fin||'17:00')}
+      </select>
+      <button onclick="eliminarEspecial('${fecha}')" style="padding:5px 9px;background:#fff;border:1.5px solid #E8E4DC;border-radius:6px;cursor:pointer;font-size:13px;">🗑️</button>
+    </div>`;
+  });
+  cont.innerHTML = html;
+}
+
+function toggleEspecial(fecha){
+  horarioConfig.especiales[fecha].abierta = !horarioConfig.especiales[fecha].abierta;
+  const abierta = horarioConfig.especiales[fecha].abierta;
+  document.getElementById('btn-esp-'+fecha).className='btn-estado '+(abierta?'btn-abierta':'btn-cerrada');
+  document.getElementById('btn-esp-'+fecha).textContent=abierta?'Abierta ▾':'Cerrada ▾';
+  document.getElementById('esp-inicio-'+fecha).disabled=!abierta;
+  document.getElementById('esp-fin-'+fecha).disabled=!abierta;
+}
+
+function cambiarHoraEspecial(fecha, tipo, val){
+  horarioConfig.especiales[fecha][tipo]=val;
+}
+
+function eliminarEspecial(fecha){
+  delete horarioConfig.especiales[fecha];
+  buildEspeciales();
+}
+
+function agregarEspecial(){
+  const input = prompt('Ingresa la fecha del horario especial (YYYY-MM-DD)\nEjemplo: 2026-10-12');
+  if(!input||!/^\d{4}-\d{2}-\d{2}$/.test(input.trim())){alert('Formato inválido. Usa YYYY-MM-DD');return;}
+  const fecha = input.trim();
+  if(horarioConfig.especiales[fecha]){alert('Ya existe un horario especial para esa fecha.');return;}
+  horarioConfig.especiales[fecha]={abierta:false,inicio:'00:00',fin:'24:00'};
+  buildEspeciales();
+  // Scroll to the new entry
+  setTimeout(()=>{const el=document.getElementById('esp-'+fecha);if(el)el.scrollIntoView({behavior:'smooth'});},100);
+}
+
+function actualizarEstado(){
+  const ahora = new Date();
+  const h = ahora.getHours(), m = ahora.getMinutes();
+  const horaStr = String(h).padStart(2,'0')+':'+String(m).padStart(2,'0');
+  const dow = ahora.getDay();
+  const isoHoy = ahora.getFullYear()+'-'+String(ahora.getMonth()+1).padStart(2,'0')+'-'+String(ahora.getDate()).padStart(2,'0');
+
+  document.getElementById('hora-live-dispon').textContent = 'Es la hora '+horaStr+'.';
+
+  // Check especial first
+  let cfg = horarioConfig.general[dow];
+  if(horarioConfig.especiales && horarioConfig.especiales[isoHoy]){
+    cfg = horarioConfig.especiales[isoHoy];
+  }
+
+  let abierto = false;
+  if(cfg && cfg.abierta){
+    abierto = horaStr >= cfg.inicio && horaStr < cfg.fin;
+  }
+
+  const badge = document.getElementById('estado-badge');
+  if(badge){
+    badge.textContent = abierto ? 'Abierto' : 'Cerrado';
+    badge.style.background = abierto ? '#27AE60' : '#E74C3C';
+    badge.style.color = '#fff';
+  }
+}
+
+function nuevoPerfil(){ alert('Función de múltiples perfiles próximamente.'); }
+function editarPerfil(){ alert('Función de múltiples perfiles próximamente.'); }
+function eliminarPerfil(){ alert('Función de múltiples perfiles próximamente.'); }
+function showHTab(tab){ /* single tab for now */ }
 
 async function guardarDisponibilidad(){
-  if(window._saveDispon){
-    await window._saveDispon(disponConfig);
-  }
-  localStorage.setItem('vk_dispon',JSON.stringify(disponConfig));
-  toast('✅ Disponibilidad guardada — se refleja en la app de clientas');
+  // Guardar en Firebase bajo config/horario
+  if(window._saveHorario) await window._saveHorario(horarioConfig);
+  localStorage.setItem('vk_horario', JSON.stringify(horarioConfig));
+  toast('✅ Horario guardado — se refleja en la app de clientas');
 }
 
 function renderDisponibilidad(){
-  // Cargar desde Firebase primero
-  if(window._loadDispon){
-    window._loadDispon(function(cfg){
-      if(cfg){
-        disponConfig=cfg;
-        // Asegurar que franjas existan
-        if(!disponConfig.franjas){disponConfig.franjas={};}
-        FRANJAS_BASE.forEach(f=>{if(!disponConfig.franjas.hasOwnProperty(f))disponConfig.franjas[f]=true;});
-        if(!disponConfig.dias)disponConfig.dias={};
-      }
-      buildCalDispon();
-      renderFranjas();
+  if(window._loadHorario){
+    window._loadHorario(function(cfg){
+      if(cfg) horarioConfig = cfg;
+      buildDiasHorario();
+      buildEspeciales();
+      actualizarEstado();
+      setInterval(actualizarEstado, 30000);
     });
   } else {
-    buildCalDispon();
-    renderFranjas();
+    buildDiasHorario();
+    buildEspeciales();
+    actualizarEstado();
+    setInterval(actualizarEstado, 30000);
   }
 }
 
