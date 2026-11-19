@@ -1,0 +1,2162 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Visos Keratin — Sistema Contable, Inventario & POS</title>
+  
+  <!-- Tipografías elegantes -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Iconos Lucide (CDN sin dependencias) -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- jsPDF para generación de PDFs profesionales -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+  <!-- SheetJS para lectura de Excel y CSV (.xlsx, .xls, .csv) -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <!-- PDF.js para extracción digital de facturas en PDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-container">
+    
+    <!-- SIDEBAR DE NAVEGACIÓN -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="brand-logo">
+          <span class="brand-icon">✨</span>
+          <div class="brand-info">
+            <h1 class="brand-title">VISOS KERATIN</h1>
+            <span class="brand-subtitle">Gestión Contable & POS</span>
+          </div>
+        </div>
+        <button class="btn-close-sidebar" id="btnCloseSidebar" aria-label="Cerrar menú">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+
+      <!-- Estado de Caja Rápido -->
+      <div class="caja-quick-status" id="cajaQuickStatus">
+        <div class="caja-status-dot online"></div>
+        <div class="caja-status-text">
+          <span class="caja-lbl">Caja del Día:</span>
+          <strong class="caja-val" id="quickCajaTotal">$0</strong>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <button class="nav-item active" data-tab="tab-pos">
+          <i data-lucide="shopping-bag"></i>
+          <span>Punto de Venta (POS)</span>
+          <span class="badge-counter" id="cartBadge" style="display:none;">0</span>
+        </button>
+
+        <button class="nav-item" data-tab="tab-agenda">
+          <i data-lucide="calendar-check"></i>
+          <span>Clientas del Día</span>
+          <span class="badge-counter badge-gold" id="agendaBadge">0</span>
+        </button>
+
+        <button class="nav-item" data-tab="tab-inventario">
+          <i data-lucide="boxes"></i>
+          <span>Inventario en Vivo</span>
+          <span class="badge-alert" id="lowStockBadge" style="display:none;">!</span>
+        </button>
+
+        <button class="nav-item" data-tab="tab-facturas">
+          <i data-lucide="receipt"></i>
+          <span>Facturas y Recibos</span>
+        </button>
+
+        <button class="nav-item" data-tab="tab-caja">
+          <i data-lucide="wallet"></i>
+          <span>Caja & Gastos</span>
+        </button>
+
+        <button class="nav-item" data-tab="tab-comisiones">
+          <i data-lucide="users"></i>
+          <span>Comisiones Estilistas</span>
+        </button>
+
+        <button class="nav-item" data-tab="tab-clientas">
+          <i data-lucide="award"></i>
+          <span>Estadísticas Clientas</span>
+        </button>
+
+        <button class="nav-item" data-tab="tab-fiscal">
+          <i data-lucide="landmark"></i>
+          <span>Declaración DIAN (Mes/Año)</span>
+        </button>
+
+        <button class="nav-item" data-tab="tab-reportes">
+          <i data-lucide="bar-chart-3"></i>
+          <span>Reportes & Utilidad</span>
+        </button>
+
+        <button class="nav-item" data-tab="tab-config">
+          <i data-lucide="settings"></i>
+          <span>Configuración</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="salon-mini-info">
+          <p class="salon-name" id="sideSalonName">Visos Keratin Salón</p>
+          <span class="salon-version">v2.0 • Tiempo Real</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ÁREA PRINCIPAL -->
+    <main class="main-content">
+      
+      <!-- TOPBAR SUPERIOR -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="btn-menu-toggle" id="btnToggleSidebar" aria-label="Abrir menú">
+            <i data-lucide="menu"></i>
+          </button>
+          <div class="topbar-title-wrap">
+            <h2 class="current-section-title" id="pageTitle">Punto de Venta (POS)</h2>
+            <p class="current-date" id="currentDateStr">Cargando fecha...</p>
+          </div>
+        </div>
+
+        <div class="topbar-right">
+          <!-- Conexión en la Nube con Base de Datos Visos Keratin -->
+          <button class="btn-topbar-cloud" id="btnCloudSyncStatus" title="Base de Datos Visos Keratin en la nube (Clic para sincronizar)">
+            <span class="cloud-indicator-dot online" id="cloudIndicatorDot"></span>
+            <i data-lucide="cloud"></i>
+            <span id="cloudStatusLabel">En Línea (BD Visos)</span>
+          </button>
+
+          <!-- Botón de apertura/cierre de caja -->
+          <button class="btn-topbar-action" id="btnQuickCajaToggle" title="Abrir o Cerrar Caja">
+            <i data-lucide="vault"></i>
+            <span id="quickCajaBtnText">Caja Abierta</span>
+          </button>
+
+          <!-- Sincronizar Citas desde App Web -->
+          <button class="btn-topbar-sync" id="btnSyncAppointments" title="Sincronizar clientas de visoskeratin.vercel.app">
+            <i data-lucide="refresh-cw"></i>
+            <span class="sync-text">Sincronizar Citas</span>
+          </button>
+
+          <!-- Limpiar Datos de Prueba / Ejemplo -->
+          <button class="btn-topbar-clean" id="btnOpenCleanDataModal" title="Limpiar ventas o citas de prueba sin tocar inventario">
+            <i data-lucide="sparkles"></i>
+            <span>Limpiar Datos Prueba</span>
+          </button>
+
+          <!-- Acceso rápido a nueva venta -->
+          <button class="btn-topbar-primary" id="btnNewSaleQuick">
+            <i data-lucide="plus"></i>
+            <span>Nueva Venta</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- VISTAS / TABS -->
+      <div class="content-body">
+
+        <!-- ======================================================== -->
+        <!-- TAB 1: PUNTO DE VENTA (POS)                              -->
+        <!-- ======================================================== -->
+        <section class="tab-pane active" id="tab-pos">
+          <div class="pos-layout">
+            
+            <!-- Catalogo izquierdo -->
+            <div class="pos-catalog">
+              
+              <!-- Buscador y Filtros -->
+              <div class="catalog-filters">
+                <div class="search-input-wrap">
+                  <i data-lucide="search" class="search-icon"></i>
+                  <input type="text" id="posSearchInput" placeholder="Buscar servicio o producto...">
+                  <button class="btn-clear-search" id="btnClearSearch" style="display:none;">&times;</button>
+                </div>
+                
+                <div class="category-tabs-bar">
+                  <div class="category-tabs" id="posCategoryTabs">
+                    <button class="cat-pill active" data-category="all">Todos</button>
+                    <button class="cat-pill" data-category="servicios">✂️ Servicios</button>
+                    <button class="cat-pill" data-category="retail">🛍️ Productos (Venta)</button>
+                    <button class="cat-pill" data-category="keratinas">🧴 Keratinas & Ampollas</button>
+                    <button class="cat-pill" data-category="shampoos">🚿 Shampoos & Mascarillas</button>
+                  </div>
+                  <button class="btn-action-outline btn-manage-svc" id="btnOpenServiceManagerModal" title="Editar o agregar servicios y precios">
+                    <i data-lucide="scissors"></i>
+                    <span>Editar Servicios</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Banner de Clienta Asignada desde Agenda (si viene de una cita) -->
+              <div class="pos-client-banner" id="posClientBanner" style="display:none;">
+                <div class="banner-client-data">
+                  <div class="client-avatar-badge" id="posBannerAvatar">MC</div>
+                  <div>
+                    <strong id="posBannerName">Clienta Agendada</strong>
+                    <span id="posBannerDetail">Hora: 10:00 AM • Estilista: Leidy</span>
+                  </div>
+                </div>
+                <button class="btn-remove-client" id="btnRemoveClientBanner" title="Quitar clienta">
+                  <i data-lucide="x"></i>
+                </button>
+              </div>
+
+              <!-- Cuadrícula de Ítems (Servicios y Productos) -->
+              <div class="pos-items-grid" id="posItemsGrid">
+                <!-- Se llena dinámicamente -->
+              </div>
+            </div>
+
+            <!-- Panel Derecho: Carrito / Cuenta Actual -->
+            <div class="pos-ticket-panel">
+              <div class="ticket-header">
+                <div class="ticket-title-row">
+                  <div class="ticket-title">
+                    <i data-lucide="shopping-cart"></i>
+                    <h3>Cuenta Actual</h3>
+                  </div>
+                  <button class="btn-clear-cart" id="btnClearCart" title="Vaciar Carrito">
+                    <i data-lucide="trash-2"></i>
+                  </button>
+                </div>
+
+                <!-- Selector de Clienta y Estilista para la venta -->
+                <div class="ticket-inputs-row">
+                  <div class="ticket-field">
+                    <label>Clienta:</label>
+                    <div class="input-with-action">
+                      <input type="text" id="posClientName" placeholder="Nombre de la clienta...">
+                      <input type="hidden" id="posClientPhone">
+                      <button class="btn-pick-client" id="btnPickClientFromAgenda" title="Elegir de citas del día">
+                        <i data-lucide="user-check"></i>
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <div class="ticket-field">
+                    <label>Estilista Responsable:</label>
+                    <select id="posStylistSelect">
+                      <option value="">Seleccionar Estilista...</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Lista de ítems en la cuenta -->
+              <div class="ticket-items-list" id="ticketItemsList">
+                <div class="ticket-empty">
+                  <i data-lucide="sparkles" class="empty-icon"></i>
+                  <p>Selecciona servicios o productos del catálogo para comenzar la cuenta.</p>
+                </div>
+              </div>
+
+              <!-- Totales y Resumen -->
+              <div class="ticket-summary">
+                <div class="summary-line">
+                  <span>Subtotal</span>
+                  <span id="posSubtotal">$0</span>
+                </div>
+                
+                <div class="summary-line discount-line">
+                  <div class="discount-label">
+                    <span>Descuento</span>
+                    <button class="btn-add-discount" id="btnToggleDiscount">% Descuento</button>
+                  </div>
+                  <span id="posDiscountAmount">-$0</span>
+                </div>
+
+                <!-- Input de Descuento (oculto por defecto) -->
+                <div class="discount-input-row" id="discountInputRow" style="display:none;">
+                  <div class="discount-inputs">
+                    <input type="number" id="posDiscountVal" placeholder="0" min="0" max="100">
+                    <select id="posDiscountType">
+                      <option value="percent">% Porcentaje</option>
+                      <option value="fixed">$ Monto Fijo</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="summary-line total-line">
+                  <span>TOTAL A PAGAR</span>
+                  <strong class="total-highlight" id="posTotalAmount">$0</strong>
+                </div>
+
+                <!-- Botón de Cobro Principal -->
+                <button class="btn-checkout" id="btnOpenCheckout">
+                  <i data-lucide="credit-card"></i>
+                  <span>COBRAR Y FACTURAR</span>
+                  <strong id="btnCheckoutTotal">$0</strong>
+                </button>
+              </div>
+
+            </div>
+
+          </div>
+        </section>
+
+        <!-- ======================================================== -->
+        <!-- TAB 2: CLIENTAS DEL DÍA (AGENDA INTEGRADA CON VISOS)      -->
+        <!-- ======================================================== -->
+        <section class="tab-pane" id="tab-agenda">
+          <div class="agenda-layout">
+            
+            <div class="agenda-header-card">
+              <div class="agenda-title-info">
+                <div class="agenda-date-picker">
+                  <button class="btn-date-nav" id="btnPrevDay">&larr;</button>
+                  <input type="date" id="agendaDatePicker">
+                  <button class="btn-date-nav" id="btnNextDay">&rarr;</button>
+                  <button class="btn-date-today" id="btnTodayAgenda">Hoy</button>
+                </div>
+                <p class="agenda-subtitle" id="agendaCountInfo">Cargando clientas agendadas...</p>
+              </div>
+
+              <div class="agenda-actions">
+                <button class="btn-secondary-action" id="btnNewAppointmentManual">
+                  <i data-lucide="calendar-plus"></i>
+                  <span>Nueva Cita</span>
+                </button>
+                <button class="btn-primary-action" id="btnFetchFromVisosApp">
+                  <i data-lucide="cloud-download"></i>
+                  <span>Recargar de Visos App</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Pestañas de estado de citas -->
+            <div class="agenda-tabs">
+              <button class="tab-filter-btn active" data-filter="all">Todas (<span id="countAllAppointments">0</span>)</button>
+              <button class="tab-filter-btn" data-filter="pendiente">⏳ En Espera (<span id="countPendientes">0</span>)</button>
+              <button class="tab-filter-btn" data-filter="atendiendo">💇 En Atención (<span id="countAtendiendo">0</span>)</button>
+              <button class="tab-filter-btn" data-filter="cobrada">✅ Cobradas / Facturadas (<span id="countCobradas">0</span>)</button>
+            </div>
+
+            <!-- Lista de citas del día -->
+            <div class="appointments-grid" id="appointmentsGrid">
+              <!-- Render dinámico de tarjetas de citas -->
+            </div>
+
+          </div>
+        </section>
+
+        <!-- ======================================================== -->
+        <!-- TAB 3: INVENTARIO EN TIEMPO REAL                         -->
+        <!-- ======================================================== -->
+        <section class="tab-pane" id="tab-inventario">
+          <div class="inventory-layout">
+
+            <!-- Subpestañas: Stock de Productos vs Facturas de Proveedores & Cuentas por Pagar -->
+            <div class="inventory-subtabs-nav">
+              <button class="inv-subtab-btn active" data-subtab="inv-subpane-stock" id="btnSubtabStock">
+                <i data-lucide="boxes"></i>
+                <span>Catálogo & Stock de Productos</span>
+              </button>
+              <button class="inv-subtab-btn" data-subtab="inv-subpane-suppliers" id="btnSubtabSuppliers">
+                <i data-lucide="truck"></i>
+                <span>Facturas de Proveedores & Cuentas por Pagar</span>
+                <span class="badge-subtab-counter alert" id="badgePendingSupplierInvoices">0</span>
+              </button>
+            </div>
+
+            <!-- SUBPANE 1: CATÁLOGO Y STOCK DE PRODUCTOS -->
+            <div class="inv-subpane active" id="inv-subpane-stock">
+              
+              <!-- Tarjetas de métricas de inventario -->
+              <div class="inventory-metrics">
+                <div class="metric-card">
+                  <div class="metric-icon gold"><i data-lucide="box"></i></div>
+                  <div class="metric-data">
+                    <span class="metric-lbl">Total Productos</span>
+                    <strong class="metric-val" id="metricTotalProducts">0</strong>
+                  </div>
+                </div>
+
+                <div class="metric-card">
+                  <div class="metric-icon emerald"><i data-lucide="badge-dollar-sign"></i></div>
+                  <div class="metric-data">
+                    <span class="metric-lbl">Valor en Stock (Costo)</span>
+                    <strong class="metric-val" id="metricTotalStockValue">$0</strong>
+                  </div>
+                </div>
+
+                <div class="metric-card">
+                  <div class="metric-icon blue"><i data-lucide="trending-up"></i></div>
+                  <div class="metric-data">
+                    <span class="metric-lbl">Valor Potencial Venta</span>
+                    <strong class="metric-val" id="metricTotalRetailValue">$0</strong>
+                  </div>
+                </div>
+
+                <div class="metric-card alert" id="metricCardLowStock">
+                  <div class="metric-icon red"><i data-lucide="alert-triangle"></i></div>
+                  <div class="metric-data">
+                    <span class="metric-lbl">Bajo Stock / Agotados</span>
+                    <strong class="metric-val text-red" id="metricLowStockCount">0</strong>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Barra de búsqueda y acciones -->
+              <div class="table-actions-bar">
+                <div class="table-search-wrap">
+                  <i data-lucide="search"></i>
+                  <input type="text" id="inventorySearchInput" placeholder="Buscar por nombre, código o categoría...">
+                </div>
+
+                <div class="table-filter-group">
+                  <select id="inventoryCategoryFilter">
+                    <option value="all">Todas las categorías</option>
+                    <option value="retail">Productos Retail (Venta)</option>
+                    <option value="cabina">Insumos Técnicos / Cabina</option>
+                    <option value="keratinas">Keratinas</option>
+                    <option value="shampoos">Shampoos & Tratamientos</option>
+                    <option value="tintes">Tintes & Decolorantes</option>
+                    <option value="accesorios">Accesorios</option>
+                  </select>
+
+                  <select id="inventoryStockStatusFilter">
+                    <option value="all">Todos los stocks</option>
+                    <option value="low">Solo Stock Bajo / Crítico</option>
+                    <option value="ok">Stock Normal</option>
+                  </select>
+                </div>
+
+                <div class="table-btn-group">
+                  <button class="btn-action-primary" id="btnOpenSupplierInvoiceModal" style="background:#0D9488; border-color:#0D9488;" title="Cargar Factura Digital de Proveedor (Excel, PDF, CSV)">
+                    <i data-lucide="file-spreadsheet"></i>
+                    <span>📥 Cargar Factura Proveedor</span>
+                  </button>
+                  <button class="btn-action-outline" id="btnStockMovementModal">
+                    <i data-lucide="arrow-left-right"></i>
+                    <span>Ajustar / Entrada</span>
+                  </button>
+                  <button class="btn-action-primary" id="btnNewProductModal">
+                    <i data-lucide="plus"></i>
+                    <span>Nuevo Producto</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Tabla de Inventario -->
+              <div class="table-responsive-container">
+                <table class="data-table" id="inventoryTable">
+                  <thead>
+                    <tr>
+                      <th>Código</th>
+                      <th>Producto</th>
+                      <th>Tipo / Categoría</th>
+                      <th class="text-right">Stock Actual</th>
+                      <th class="text-right">Mínimo</th>
+                      <th class="text-right">Precio Costo</th>
+                      <th class="text-right">Precio Venta</th>
+                      <th class="text-center">Estado</th>
+                      <th class="text-center">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody id="inventoryTableBody">
+                    <!-- Llenado dinámico -->
+                  </tbody>
+                </table>
+              </div>
+
+            </div>
+
+            <!-- SUBPANE 2: FACTURAS DE PROVEEDORES & CUENTAS POR PAGAR -->
+            <div class="inv-subpane" id="inv-subpane-suppliers" style="display:none;">
+              
+              <!-- Métricas de Cuentas por Pagar a Proveedores -->
+              <div class="inventory-metrics">
+                <div class="metric-card alert">
+                  <div class="metric-icon red"><i data-lucide="wallet"></i></div>
+                  <div class="metric-data">
+                    <span class="metric-lbl">Total Deuda a Proveedores</span>
+                    <strong class="metric-val text-red" id="metricTotalSupplierDebt">$0</strong>
+                  </div>
+                </div>
+
+                <div class="metric-card">
+                  <div class="metric-icon gold"><i data-lucide="clock"></i></div>
+                  <div class="metric-data">
+                    <span class="metric-lbl">Facturas por Vencer (Próx. 7 días)</span>
+                    <strong class="metric-val text-gold" id="metricDueSoonSupplierCount">0</strong>
+                  </div>
+                </div>
+
+                <div class="metric-card alert">
+                  <div class="metric-icon red"><i data-lucide="alert-octagon"></i></div>
+                  <div class="metric-data">
+                    <span class="metric-lbl">Facturas Vencidas</span>
+                    <strong class="metric-val text-red" id="metricOverdueSupplierCount">0</strong>
+                  </div>
+                </div>
+
+                <div class="metric-card">
+                  <div class="metric-icon emerald"><i data-lucide="check-circle-2"></i></div>
+                  <div class="metric-data">
+                    <span class="metric-lbl">Facturas Totalmente Pagadas</span>
+                    <strong class="metric-val text-emerald" id="metricPaidSupplierCount">0</strong>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Filtros y Acciones de Proveedores -->
+              <div class="table-actions-bar">
+                <div class="table-search-wrap">
+                  <i data-lucide="search"></i>
+                  <input type="text" id="supplierSearchInput" placeholder="Buscar por proveedor o número de factura...">
+                </div>
+
+                <div class="table-filter-group">
+                  <select id="supplierProviderFilter">
+                    <option value="all">Todos los Proveedores</option>
+                  </select>
+
+                  <select id="supplierStatusFilter">
+                    <option value="pending_all" selected>Con Saldo Pendiente (Deuda)</option>
+                    <option value="all">Todos los Estados</option>
+                    <option value="overdue">Solo Vencidas</option>
+                    <option value="paid">Totalmente Pagadas</option>
+                  </select>
+                </div>
+
+                <div class="table-btn-group">
+                  <button class="btn-action-outline" id="btnSendAllDebtsSummaryWhatsApp" title="Enviar consolidado de deudas pendientes al celular del Administrador por WhatsApp">
+                    <i data-lucide="send"></i>
+                    <span>📲 Resumen a Mi Celular</span>
+                  </button>
+                  <button class="btn-action-primary" id="btnOpenSupplierInvoiceModal2" style="background:#0D9488; border-color:#0D9488;">
+                    <i data-lucide="file-spreadsheet"></i>
+                    <span>📥 Cargar Factura Digital</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Tabla de Cuentas por Pagar -->
+              <div class="table-responsive-container">
+                <table class="data-table" id="supplierInvoicesTable">
+                  <thead>
+                    <tr>
+                      <th>Proveedor</th>
+                      <th>Nº Factura</th>
+                      <th>Fecha Emisión</th>
+                      <th>Fecha Límite (Vencimiento)</th>
+                      <th class="text-right">Total Factura</th>
+                      <th class="text-right">Abonado</th>
+                      <th class="text-right">Saldo Pendiente</th>
+                      <th class="text-center">Estado</th>
+                      <th class="text-center">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody id="supplierInvoicesTableBody">
+                    <!-- Dinámico -->
+                  </tbody>
+                </table>
+              </div>
+
+            </div>
+
+          </div>
+        </section>
+
+        <!-- ======================================================== -->
+        <!-- TAB 4: FACTURAS & RECIBOS GENERADOS                      -->
+        <!-- ======================================================== -->
+        <section class="tab-pane" id="tab-facturas">
+          <div class="invoices-layout">
+            
+            <div class="table-actions-bar">
+              <div class="table-search-wrap">
+                <i data-lucide="search"></i>
+                <input type="text" id="invoicesSearchInput" placeholder="Buscar por número de factura o clienta...">
+              </div>
+
+              <div class="table-filter-group">
+                <input type="date" id="invoicesDateFilter">
+                <select id="invoicesPaymentFilter">
+                  <option value="all">Todos los métodos</option>
+                  <option value="efectivo">Efectivo</option>
+                  <option value="tarjeta">Tarjeta Débito/Crédito</option>
+                  <option value="transferencia">Transferencia (Nequi/Daviplata)</option>
+                </select>
+              </div>
+
+              <button class="btn-action-outline" id="btnExportInvoicesCsv">
+                <i data-lucide="download"></i>
+                <span>Exportar Excel</span>
+              </button>
+            </div>
+
+            <!-- Tabla de Facturas -->
+            <div class="table-responsive-container">
+              <table class="data-table" id="invoicesTable">
+                <thead>
+                  <tr>
+                    <th>Nº Factura</th>
+                    <th>Fecha & Hora</th>
+                    <th>Clienta</th>
+                    <th>Estilista</th>
+                    <th>Método</th>
+                    <th class="text-right">Total</th>
+                    <th class="text-center">Estado</th>
+                    <th class="text-center">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="invoicesTableBody">
+                  <!-- Llenado dinámico -->
+                </tbody>
+              </table>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- ======================================================== -->
+        <!-- TAB 5: CAJA & GASTOS (ARQUEO DIARIO)                     -->
+        <!-- ======================================================== -->
+        <section class="tab-pane" id="tab-caja">
+          <div class="caja-layout">
+            
+            <!-- Resumen de Caja de la Jornada -->
+            <div class="caja-summary-card">
+              <div class="caja-card-header">
+                <div>
+                  <span class="badge-status open" id="cajaStateBadge">Caja Abierta</span>
+                  <h3 class="caja-card-title">Cuadre & Arqueo de Caja</h3>
+                  <p class="caja-date-info" id="cajaOpenedInfo">Abierta el día de hoy a las 8:00 AM</p>
+                </div>
+                <div class="caja-header-btns">
+                  <button class="btn-action-danger" id="btnCloseCashRegister">
+                    <i data-lucide="lock"></i>
+                    <span>Cerrar & Cuadrar Caja</span>
+                  </button>
+                  <button class="btn-action-primary" id="btnRegisterExpenseModal">
+                    <i data-lucide="minus-circle"></i>
+                    <span>Registrar Gasto</span>
+                  </button>
+                </div>
+              </div>
+
+              <div class="caja-grid-stats">
+                <div class="stat-box">
+                  <span class="stat-lbl">Fondo Inicial (Base)</span>
+                  <strong class="stat-num" id="cajaBaseAmount">$0</strong>
+                  <button class="btn-edit-base" id="btnEditBaseCash">Editar</button>
+                </div>
+
+                <div class="stat-box">
+                  <span class="stat-lbl">Ventas Efectivo</span>
+                  <strong class="stat-num text-emerald" id="cajaSalesCash">$0</strong>
+                </div>
+
+                <div class="stat-box">
+                  <span class="stat-lbl">Ventas Tarjeta / Transf.</span>
+                  <strong class="stat-num text-blue" id="cajaSalesDigital">$0</strong>
+                </div>
+
+                <div class="stat-box">
+                  <span class="stat-lbl">Total Egresos / Gastos</span>
+                  <strong class="stat-num text-red" id="cajaTotalExpenses">$0</strong>
+                </div>
+
+                <div class="stat-box highlight">
+                  <span class="stat-lbl">Efectivo Físico Esperado en Caja</span>
+                  <strong class="stat-num text-gold" id="cajaExpectedCash">$0</strong>
+                  <span class="stat-sub">(Base + Ventas Efectivo - Gastos Efectivo)</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Historial de Egresos / Gastos -->
+            <div class="expenses-section">
+              <div class="section-header-row">
+                <h4 class="section-title">
+                  <i data-lucide="receipt-text"></i>
+                  <span>Gastos y Salidas de Dinero del Día</span>
+                </h4>
+              </div>
+
+              <div class="table-responsive-container">
+                <table class="data-table" id="expensesTable">
+                  <thead>
+                    <tr>
+                      <th>Hora</th>
+                      <th>Concepto / Descripción</th>
+                      <th>Categoría</th>
+                      <th>Método de Pago</th>
+                      <th class="text-right">Monto</th>
+                      <th class="text-center">Acción</th>
+                    </tr>
+                  </thead>
+                  <tbody id="expensesTableBody">
+                    <!-- Dinámico -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- ======================================================== -->
+        <!-- TAB 6: LIQUIDACIÓN DE COMISIONES                         -->
+        <!-- ======================================================== -->
+        <section class="tab-pane" id="tab-comisiones">
+          <div class="comisiones-layout">
+            
+            <div class="comisiones-filter-bar">
+              <div class="filter-dates-wrap">
+                <label>Filtrar Período:</label>
+                <input type="date" id="comisionesDateStart">
+                <span>hasta</span>
+                <input type="date" id="comisionesDateEnd">
+                <button class="btn-action-outline" id="btnFilterComisiones">Filtrar</button>
+                <button class="btn-action-outline" id="btnTodayComisiones">Hoy</button>
+              </div>
+
+              <button class="btn-action-primary" id="btnExportComisionesPdf">
+                <i data-lucide="file-text"></i>
+                <span>Imprimir Liquidación</span>
+              </button>
+            </div>
+
+            <!-- Tarjetas de cada estilista con su comisión calculada -->
+            <div class="stylists-commissions-grid" id="stylistsCommissionsGrid">
+              <!-- Render dinámico -->
+            </div>
+
+          </div>
+        </section>
+
+        <!-- ======================================================== -->
+        <!-- TAB 6.5: ESTADÍSTICAS POR CLIENTAS (CRM & CONSUMO)       -->
+        <!-- ======================================================== -->
+        <section class="tab-pane" id="tab-clientas">
+          <div class="clientas-stats-layout">
+            
+            <!-- Barra Superior de Filtros y Búsqueda -->
+            <div class="clientas-toolbar">
+              <div class="table-search-wrap" style="max-width: 380px;">
+                <i data-lucide="search"></i>
+                <input type="text" id="clientSearchInput" placeholder="Buscar clienta por nombre o teléfono...">
+              </div>
+
+              <div class="filter-dates-wrap">
+                <label>Filtrar por período:</label>
+                <select id="clientPeriodFilter">
+                  <option value="all">Todo el Historial</option>
+                  <option value="year">Este Año (2026)</option>
+                  <option value="month">Este Mes</option>
+                </select>
+              </div>
+
+              <div class="client-actions-right">
+                <button class="btn-action-outline" id="btnExportClientsCsv">
+                  <i data-lucide="download"></i>
+                  <span>Exportar Clientas</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Ficha Rápida de Clienta (si se busca una en particular) -->
+            <div class="client-profile-card" id="clientProfileCard" style="display:none;">
+              <!-- Llenado dinámico al buscar o seleccionar una clienta -->
+            </div>
+
+            <!-- Tarjetas Resumen de Clientas -->
+            <div class="clientas-kpi-grid">
+              <div class="metric-card">
+                <div class="metric-icon gold"><i data-lucide="users"></i></div>
+                <div class="metric-data">
+                  <span class="metric-lbl">Total Clientas Únicas</span>
+                  <strong class="metric-val" id="metricTotalClients">0</strong>
+                </div>
+              </div>
+
+              <div class="metric-card">
+                <div class="metric-icon emerald"><i data-lucide="crown"></i></div>
+                <div class="metric-data">
+                  <span class="metric-lbl">Clienta VIP #1 (Más Facturó)</span>
+                  <strong class="metric-val text-emerald" id="metricTopClientName" style="font-size: 15px;">—</strong>
+                  <span class="caja-lbl" id="metricTopClientTotal" style="color:var(--gold); font-weight:700;">$0</span>
+                </div>
+              </div>
+
+              <div class="metric-card">
+                <div class="metric-icon blue"><i data-lucide="calculator"></i></div>
+                <div class="metric-data">
+                  <span class="metric-lbl">Ticket Promedio por Clienta</span>
+                  <strong class="metric-val text-blue" id="metricAvgClientTicket">$0</strong>
+                </div>
+              </div>
+
+              <div class="metric-card alert">
+                <div class="metric-icon red"><i data-lucide="user-x"></i></div>
+                <div class="metric-data">
+                  <span class="metric-lbl">Clientas Inactivas (>45 días)</span>
+                  <strong class="metric-val text-red" id="metricInactiveClientsCount">0</strong>
+                </div>
+              </div>
+            </div>
+
+            <!-- Pestañas de Rankings de Clientas -->
+            <div class="clientas-subtabs">
+              <button class="client-subtab-btn active" data-subtab="subtab-top-facturacion">
+                <i data-lucide="trending-up"></i>
+                <span>👑 Clientas con Mayor Facturación</span>
+              </button>
+              <button class="client-subtab-btn" data-subtab="subtab-menor-consumo">
+                <i data-lucide="trending-down"></i>
+                <span>📉 Clientas de Menor Consumo</span>
+              </button>
+              <button class="client-subtab-btn" data-subtab="subtab-agendamientos">
+                <i data-lucide="calendar-heart"></i>
+                <span>📅 Agendamientos & Frecuencia</span>
+              </button>
+              <button class="client-subtab-btn" data-subtab="subtab-cartera-morosas" id="btnSubtabCartera">
+                <i data-lucide="alert-circle"></i>
+                <span>🚨 Cartera & Clientas Morosas</span>
+                <span class="badge-subtab-counter alert" id="badgeDebtorClientsCount">0</span>
+              </button>
+            </div>
+
+            <!-- SUBTAB 1: MAYOR FACTURACIÓN (TOP CLIENTAS VIP) -->
+            <div class="client-subpane active" id="subtab-top-facturacion">
+              <div class="table-responsive-container">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th class="text-center" style="width: 50px;">Rango</th>
+                      <th>Clienta</th>
+                      <th>Contacto WhatsApp</th>
+                      <th class="text-center">Visitas / Facturas</th>
+                      <th class="text-right">Ticket Promedio</th>
+                      <th class="text-right">TOTAL FACTURADO</th>
+                      <th>Servicio Favorito</th>
+                      <th class="text-center">Fidelización</th>
+                    </tr>
+                  </thead>
+                  <tbody id="topClientsTableBody">
+                    <!-- Dinámico -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- SUBTAB 2: MENOR CONSUMO / OCASIONALES -->
+            <div class="client-subpane" id="subtab-menor-consumo">
+              <div class="alert-notice" style="margin-bottom: 1rem;">
+                💡 <strong>Oportunidad de Reactivación:</strong> Estas clientas han registrado consumos mínimos o una sola visita. Puedes escribirles directamente por WhatsApp para ofrecerles una promoción especial o seguimiento a su servicio.
+              </div>
+              <div class="table-responsive-container">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Clienta</th>
+                      <th>Contacto</th>
+                      <th class="text-center">Visitas</th>
+                      <th class="text-right">Total Facturado</th>
+                      <th>Último Servicio Realizado</th>
+                      <th>Fecha Última Visita</th>
+                      <th class="text-center">Reactivar</th>
+                    </tr>
+                  </thead>
+                  <tbody id="lowClientsTableBody">
+                    <!-- Dinámico -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- SUBTAB 3: AGENDAMIENTOS POR CLIENTAS & ASISTENCIA -->
+            <div class="client-subpane" id="subtab-agendamientos">
+              <div class="table-responsive-container">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Clienta</th>
+                      <th>Teléfono</th>
+                      <th class="text-center">Citas Agendadas</th>
+                      <th class="text-center">Citas Cumplidas / Pagadas</th>
+                      <th class="text-center">Tasa Asistencia</th>
+                      <th>Última Cita</th>
+                      <th class="text-center">Estado de Retención</th>
+                      <th class="text-center">Agendar Nueva</th>
+                    </tr>
+                  </thead>
+                  <tbody id="appointmentsClientsTableBody">
+                    <!-- Dinámico -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- SUBTAB 4: CARTERA & CLIENTAS MOROSAS (CUENTAS POR COBRAR) -->
+            <div class="client-subpane" id="subtab-cartera-morosas">
+              
+              <!-- Métricas de Cartera de Clientas -->
+              <div class="inventory-metrics" style="margin-bottom:1.25rem;">
+                <div class="metric-card alert">
+                  <div class="metric-icon red"><i data-lucide="alert-triangle"></i></div>
+                  <div class="metric-data">
+                    <span class="metric-lbl">Total Cartera por Cobrar</span>
+                    <strong class="metric-val text-red" id="metricTotalClientDebt">$0</strong>
+                  </div>
+                </div>
+
+                <div class="metric-card">
+                  <div class="metric-icon gold"><i data-lucide="user-x"></i></div>
+                  <div class="metric-data">
+                    <span class="metric-lbl">Clientas con Deuda Activa</span>
+                    <strong class="metric-val text-gold" id="metricDebtorClientsCount">0</strong>
+                  </div>
+                </div>
+
+                <div class="metric-card">
+                  <div class="metric-icon emerald"><i data-lucide="award"></i></div>
+                  <div class="metric-data">
+                    <span class="metric-lbl">Facturas a Paz y Salvo</span>
+                    <strong class="metric-val text-emerald" id="metricPazYSalvoCount">0</strong>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Filtros y Búsqueda de Cartera -->
+              <div class="table-actions-bar">
+                <div class="table-search-wrap">
+                  <i data-lucide="search"></i>
+                  <input type="text" id="debtorSearchInput" placeholder="Buscar clienta con deuda por nombre o teléfono...">
+                </div>
+
+                <div class="table-filter-group">
+                  <select id="debtorStatusFilter">
+                    <option value="pending" selected>Solo Clientas Morosas / Con Saldo</option>
+                    <option value="all">Todas (Historial de Créditos)</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Tabla de Clientas Morosas -->
+              <div class="table-responsive-container">
+                <table class="data-table" id="debtorsTable">
+                  <thead>
+                    <tr>
+                      <th>Clienta</th>
+                      <th>Teléfono / WhatsApp</th>
+                      <th>Factura N°</th>
+                      <th>Fecha Venta</th>
+                      <th>Fecha Compromiso</th>
+                      <th class="text-right">Total Factura</th>
+                      <th class="text-right">Total Abonado</th>
+                      <th class="text-right">Saldo Pendiente</th>
+                      <th class="text-center">Estado</th>
+                      <th class="text-center">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody id="debtorsTableBody">
+                    <!-- Dinámico -->
+                  </tbody>
+                </table>
+              </div>
+
+            </div>
+
+          </div>
+        </section>
+
+        <!-- ======================================================== -->
+        <!-- TAB 6.8: DECLARACIÓN ANTE LA DIAN (MES & AÑO)             -->
+        <!-- ======================================================== -->
+        <section class="tab-pane" id="tab-fiscal">
+          <div class="fiscal-layout">
+            
+            <!-- Encabezado y Filtros Fiscales -->
+            <div class="fiscal-header-card">
+              <div class="fiscal-title-wrap">
+                <div class="dian-badge">
+                  <i data-lucide="landmark"></i>
+                  <span>CONTROL TRIBUTARIO DIAN — COLOMBIA</span>
+                </div>
+                <h3>Consolidado Fiscal de Ingresos, Costos y Deducciones</h3>
+                <p class="fiscal-subtitle">
+                  Información contable lista para la declaración de renta (Régimen Ordinario o Régimen Simple de Tributación - RST).
+                </p>
+              </div>
+
+              <div class="fiscal-controls">
+                <div class="fiscal-select-group">
+                  <label>Año Gravable:</label>
+                  <select id="fiscalYearSelect">
+                    <option value="2027">2027</option>
+                    <option value="2026" selected>2026</option>
+                    <option value="2025">2025</option>
+                    <option value="2024">2024</option>
+                  </select>
+                </div>
+
+                <div class="fiscal-select-group">
+                  <label>Mes:</label>
+                  <select id="fiscalMonthSelect">
+                    <option value="all">Todo el Año (Consolidado)</option>
+                    <option value="1">Enero</option>
+                    <option value="2">Febrero</option>
+                    <option value="3">Marzo</option>
+                    <option value="4">Abril</option>
+                    <option value="5">Mayo</option>
+                    <option value="6">Junio</option>
+                    <option value="7">Julio</option>
+                    <option value="8">Agosto</option>
+                    <option value="9">Septiembre</option>
+                    <option value="10">Octubre</option>
+                    <option value="11">Noviembre</option>
+                    <option value="12">Diciembre</option>
+                  </select>
+                </div>
+
+                <div class="fiscal-btn-actions">
+                  <button class="btn-action-primary" id="btnExportFiscalPdf">
+                    <i data-lucide="file-text"></i>
+                    <span>Descargar Informe DIAN (PDF)</span>
+                  </button>
+                  <button class="btn-action-outline" id="btnExportFiscalCsv">
+                    <i data-lucide="table"></i>
+                    <span>Exportar Excel (CSV)</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tarjetas de Renglones para Declaración de Renta -->
+            <div class="fiscal-cards-grid">
+              <div class="fiscal-card">
+                <span class="fiscal-renglon">RENGLÓN FISCAL: INGRESOS BRUTOS</span>
+                <strong class="fiscal-amount text-emerald" id="fiscalIngresosBrutos">$0</strong>
+                <div class="fiscal-subdetails">
+                  <span>✂️ Servicios: <strong id="fiscalIngresosServicios">$0</strong></span>
+                  <span>🛍️ Productos: <strong id="fiscalIngresosProductos">$0</strong></span>
+                </div>
+              </div>
+
+              <div class="fiscal-card">
+                <span class="fiscal-renglon">DESCUENTOS & REBAJAS APROBADAS</span>
+                <strong class="fiscal-amount text-muted" id="fiscalDescuentos">-$0</strong>
+                <span class="fiscal-note">Menor valor facturado a clientas</span>
+              </div>
+
+              <div class="fiscal-card">
+                <span class="fiscal-renglon">COSTOS & DEDUCCIONES PROCEDENTES</span>
+                <strong class="fiscal-amount text-red" id="fiscalCostosDeducciones">$0</strong>
+                <div class="fiscal-subdetails">
+                  <span>Insumos & Mercancía: <strong id="fiscalCostoInsumos">$0</strong></span>
+                  <span>Comisiones Nómina: <strong id="fiscalComisiones">$0</strong></span>
+                  <span>Gastos Operativos: <strong id="fiscalGastosOp">$0</strong></span>
+                </div>
+              </div>
+
+              <div class="fiscal-card highlight-dian">
+                <span class="fiscal-renglon">RENTA LÍQUIDA ORDINARIA ESTIMADA</span>
+                <strong class="fiscal-amount text-gold" id="fiscalRentaLiquida">$0</strong>
+                <span class="fiscal-note">Base gravable antes de impuestos (Ingresos Netos - Deducciones)</span>
+              </div>
+            </div>
+
+            <!-- Tabla de Consolidado Mes a Mes (Enero a Diciembre) -->
+            <div class="fiscal-table-section">
+              <div class="section-header-row">
+                <h4 class="section-title">
+                  <i data-lucide="calendar"></i>
+                  <span id="fiscalTableTitle">Consolidado Mensual del Año Gravable 2026</span>
+                </h4>
+              </div>
+
+              <div class="table-responsive-container">
+                <table class="data-table" id="fiscalMonthlyTable">
+                  <thead>
+                    <tr>
+                      <th>Mes</th>
+                      <th class="text-center">Nº Facturas</th>
+                      <th class="text-right">Ingresos Servicios</th>
+                      <th class="text-right">Ingresos Retail</th>
+                      <th class="text-right">Total Ingresos Brutos</th>
+                      <th class="text-right">Costos y Gastos</th>
+                      <th class="text-right">Renta Líquida / Utilidad</th>
+                      <th class="text-center">Margen</th>
+                    </tr>
+                  </thead>
+                  <tbody id="fiscalMonthlyTableBody">
+                    <!-- Dinámico -->
+                  </tbody>
+                  <tfoot id="fiscalMonthlyTableFoot" style="font-weight: 700; background: var(--navy-subtle);">
+                    <!-- Totales consolidados -->
+                  </tfoot>
+                </table>
+              </div>
+            </div>
+
+            <!-- Detalle de Movimientos Individuales (Libro de Operaciones) -->
+            <div class="fiscal-movements-section">
+              <div class="section-header-row">
+                <h4 class="section-title">
+                  <i data-lucide="list"></i>
+                  <span>Libro Fiscal de Operaciones Diarias (Facturas & Egresos Soportados)</span>
+                </h4>
+                <div class="table-search-wrap" style="max-width: 280px;">
+                  <i data-lucide="search"></i>
+                  <input type="text" id="fiscalMovementsSearch" placeholder="Filtrar movimientos...">
+                </div>
+              </div>
+
+              <div class="table-responsive-container">
+                <table class="data-table" id="fiscalMovementsTable">
+                  <thead>
+                    <tr>
+                      <th>Fecha</th>
+                      <th>Tipo</th>
+                      <th>Comprobante</th>
+                      <th>Tercero / Clienta / Proveedor</th>
+                      <th>Concepto / Detalle</th>
+                      <th>Medio de Pago</th>
+                      <th class="text-right">Ingreso (+)</th>
+                      <th class="text-right">Egreso (-)</th>
+                    </tr>
+                  </thead>
+                  <tbody id="fiscalMovementsTableBody">
+                    <!-- Dinámico -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- ======================================================== -->
+        <!-- TAB 7: REPORTES FINANCIEROS & UTILIDAD                   -->
+        <!-- ======================================================== -->
+        <section class="tab-pane" id="tab-reportes">
+          <div class="reportes-layout">
+            
+            <div class="kpi-grid">
+              <div class="kpi-card">
+                <span class="kpi-title">Ingresos Totales (Ventas)</span>
+                <strong class="kpi-val text-emerald" id="kpiTotalIncome">$0</strong>
+                <span class="kpi-detail" id="kpiSalesCount">0 transacciones</span>
+              </div>
+
+              <div class="kpi-card">
+                <span class="kpi-title">Costo de Insumos / Mercancía</span>
+                <strong class="kpi-val text-muted" id="kpiCostoMercancia">$0</strong>
+                <span class="kpi-detail">Costo directo de lo vendido</span>
+              </div>
+
+              <div class="kpi-card">
+                <span class="kpi-title">Comisiones de Estilistas</span>
+                <strong class="kpi-val text-gold" id="kpiTotalComisiones">$0</strong>
+                <span class="kpi-detail">Liquidación estimada</span>
+              </div>
+
+              <div class="kpi-card">
+                <span class="kpi-title">Gastos Operativos</span>
+                <strong class="kpi-val text-red" id="kpiTotalGastos">$0</strong>
+                <span class="kpi-detail">Alquiler, servicios, etc.</span>
+              </div>
+
+              <div class="kpi-card highlight-profit">
+                <span class="kpi-title">UTILIDAD NETA ESTIMADA</span>
+                <strong class="kpi-val text-profit" id="kpiUtilidadNeta">$0</strong>
+                <span class="kpi-detail">Ingresos - Costos - Comisiones - Gastos</span>
+              </div>
+            </div>
+
+            <!-- Listas top: Servicios más vendidos y Productos estrella -->
+            <div class="top-ranking-grid">
+              <div class="ranking-card">
+                <h4><i data-lucide="scissors"></i> Servicios Más Realizados</h4>
+                <div class="ranking-list" id="topServicesList"></div>
+              </div>
+
+              <div class="ranking-card">
+                <h4><i data-lucide="package-check"></i> Productos Más Vendidos</h4>
+                <div class="ranking-list" id="topProductsList"></div>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- ======================================================== -->
+        <!-- TAB 8: CONFIGURACIÓN & COPIA DE SEGURIDAD                -->
+        <!-- ======================================================== -->
+        <section class="tab-pane" id="tab-config">
+          <div class="config-layout">
+            
+            <!-- Datos del Salón -->
+            <div class="config-card">
+              <div class="config-card-header">
+                <i data-lucide="store"></i>
+                <h3>Datos del Salón (Para Facturas y Tickets)</h3>
+              </div>
+              <div class="config-form-grid">
+                <div class="form-group">
+                  <label>Nombre del Salón:</label>
+                  <input type="text" id="cfgSalonName" value="VISOS KERATIN">
+                </div>
+                <div class="form-group">
+                  <label>Eslogan / Lema:</label>
+                  <input type="text" id="cfgSalonSlogan" value="¡Donde tu cabello encuentra su mejor versión!">
+                </div>
+                <div class="form-group">
+                  <label>NIT / RUT / Identificación:</label>
+                  <input type="text" id="cfgSalonNit" placeholder="Ej: 900.123.456-7">
+                </div>
+                <div class="form-group">
+                  <label>WhatsApp / Teléfono de Contacto:</label>
+                  <input type="text" id="cfgSalonPhone" value="+57 300 000 0000">
+                </div>
+                <div class="form-group">
+                  <label>Dirección:</label>
+                  <input type="text" id="cfgSalonAddress" placeholder="Calle, Barrio, Ciudad">
+                </div>
+                <div class="form-group">
+                  <label>Moneda / Símbolo:</label>
+                  <input type="text" id="cfgCurrencySymbol" value="$">
+                </div>
+                <div class="form-group full-width">
+                  <label>Mensaje al pie de la factura / ticket:</label>
+                  <textarea id="cfgInvoiceFooter" rows="2">¡Gracias por confiar en Visos Keratin! Síguenos en redes sociales.</textarea>
+                </div>
+              </div>
+              <button class="btn-action-primary" id="btnSaveSalonConfig">Guardar Datos del Salón</button>
+            </div>
+
+            <!-- Estilistas y Porcentajes de Comisión -->
+            <div class="config-card">
+              <div class="config-card-header">
+                <i data-lucide="users"></i>
+                <h3>Estilistas & Comisiones</h3>
+              </div>
+              <div class="stylists-list-config" id="stylistsConfigList">
+                <!-- Dinámico -->
+              </div>
+              <button class="btn-action-outline" id="btnAddStylistConfig">
+                <i data-lucide="user-plus"></i>
+                <span>Agregar Nuevo Estilista</span>
+              </button>
+            </div>
+
+            <!-- Base de Datos en la Nube (Firebase - Visos Keratin) & Sincronización -->
+            <div class="config-card" style="border-color:#38BDF8; background:#F0F9FF;">
+              <div class="config-card-header" style="color:#0369A1;">
+                <i data-lucide="cloud"></i>
+                <h3>Base de Datos en la Nube (Firebase - Visos Keratin)</h3>
+              </div>
+              <p class="config-desc">
+                Este sistema contable se conecta directamente con la base de datos central de <strong>Visos Keratin</strong> (Firebase Realtime Database) para guardar en la nube todo el inventario, facturas, compras a proveedores y citas en tiempo real.
+              </p>
+              <div class="form-grid" style="margin-bottom:12px;">
+                <div class="form-group full-width">
+                  <label>URL de la Base de Datos Firebase RTDB:</label>
+                  <input type="text" id="cfgFirebaseUrl" value="https://visos-keratin-default-rtdb.firebaseio.com">
+                </div>
+                <div class="form-group">
+                  <label>Celular del Administrador (Para Recordatorios WhatsApp):</label>
+                  <input type="tel" id="cfgAdminPhone" placeholder="+57 316 639 0429" value="+57 3166390429">
+                </div>
+                <div class="form-group">
+                  <label>Margen de Ganancia Sugerido por Defecto (%):</label>
+                  <input type="number" id="cfgDefaultMargin" min="0" max="500" value="50">
+                </div>
+              </div>
+
+              <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                <button class="btn-action-primary" id="btnSyncCloudNow" style="background:#0284C7; border-color:#0284C7;">
+                  <i data-lucide="refresh-cw"></i>
+                  <span>Sincronizar Ahora con BD Nube</span>
+                </button>
+                <button class="btn-action-outline" id="btnPushToCloudMaster" title="Guardar estado maestro en la nube">
+                  <i data-lucide="upload-cloud"></i>
+                  <span>Guardar Copia Maestra en Firebase</span>
+                </button>
+                <button class="btn-action-outline" id="btnPullFromCloudMaster" title="Restaurar desde la nube">
+                  <i data-lucide="download-cloud"></i>
+                  <span>Descargar Copia desde Firebase</span>
+                </button>
+              </div>
+              <div id="cfgLastSyncTime" style="margin-top:8px; font-size:11.5px; color:#0369A1; font-weight:600;">
+                Estado: Conectado a Visos Keratin RTDB
+              </div>
+            </div>
+
+            <!-- Gestión de Servicios y Precios del Salón -->
+            <div class="config-card">
+              <div class="config-card-header">
+                <i data-lucide="scissors"></i>
+                <h3>Servicios del Salón (Nombres y Precios Editables)</h3>
+              </div>
+              <p class="config-desc">
+                Aquí puedes cambiar los nombres, valores ($) y duración de los servicios para que se reflejen de inmediato en la pantalla de cobro y en las citas.
+              </p>
+              <div class="table-responsive-container" style="max-height: 320px; overflow-y: auto;">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Servicio</th>
+                      <th>Categoría</th>
+                      <th class="text-right">Precio ($)</th>
+                      <th class="text-center">Duración</th>
+                      <th class="text-center">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody id="configServicesTableBody">
+                    <!-- Dinámico -->
+                  </tbody>
+                </table>
+              </div>
+              <button class="btn-action-primary" id="btnAddNewServiceConfig">
+                <i data-lucide="plus"></i>
+                <span>Agregar Nuevo Servicio</span>
+              </button>
+            </div>
+
+            <!-- Limpieza de Datos de Prueba (Comenzar en Limpio) -->
+            <div class="config-card" style="border-color: #FCA5A5; background: #FFFBFB;">
+              <div class="config-card-header" style="color: #991B1B;">
+                <i data-lucide="trash-2"></i>
+                <h3>Limpiar Datos de Prueba (Comenzar en Limpio)</h3>
+              </div>
+              <p class="config-desc">
+                Si deseas eliminar las facturas, citas o movimientos de ejemplo para empezar a registrar únicamente las ventas reales de tu salón, usa estas opciones. 
+                <strong style="color: #065F46; display: block; margin-top: 4px;">✅ Tu inventario de productos actualizado y tus servicios NO se borrarán.</strong>
+              </p>
+              <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px;">
+                <button class="btn-action-danger" id="btnCleanInvoicesOnly">
+                  <i data-lucide="receipt"></i>
+                  <span>Borrar Solo Facturas de Prueba</span>
+                </button>
+                <button class="btn-action-outline" id="btnCleanAppointmentsOnly">
+                  <i data-lucide="calendar-x"></i>
+                  <span>Borrar Citas de Prueba</span>
+                </button>
+                <button class="btn-action-danger" id="btnCleanAllDummyData" style="background:#7F1D1D; color:#FFF;">
+                  <i data-lucide="sparkles"></i>
+                  <span>Borrar TODO el Historial de Ejemplo</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Copia de Seguridad y Restauración -->
+            <div class="config-card backup-card">
+              <div class="config-card-header">
+                <i data-lucide="shield-check"></i>
+                <h3>Copia de Seguridad (Tus Datos Están Seguros)</h3>
+              </div>
+              <p class="config-desc">
+                Todos tus datos (inventario, ventas, facturas, caja) se guardan automáticamente en tu dispositivo. Puedes descargar una copia de seguridad en cualquier momento para guardarla en tu Google Drive o pasarla a otro celular o tablet.
+              </p>
+              <div class="backup-actions">
+                <button class="btn-action-primary" id="btnDownloadBackup">
+                  <i data-lucide="download"></i>
+                  <span>Descargar Copia de Seguridad (JSON)</span>
+                </button>
+                
+                <label class="btn-action-outline file-upload-label">
+                  <i data-lucide="upload"></i>
+                  <span>Restaurar Copia desde Archivo</span>
+                  <input type="file" id="inputRestoreBackup" accept=".json" style="display:none;">
+                </label>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+      </div>
+    </main>
+
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- MODAL 1: CHECKOUT / COBRO Y FACTURACIÓN                 -->
+  <!-- ======================================================== -->
+  <div class="modal-overlay" id="checkoutModal">
+    <div class="modal-box modal-checkout">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <i data-lucide="badge-dollar-sign"></i>
+          <h3>Finalizar Venta & Facturar</h3>
+        </div>
+        <button class="btn-close-modal" id="btnCloseCheckout">&times;</button>
+      </div>
+
+      <div class="modal-body checkout-body">
+        
+        <div class="checkout-client-summary">
+          <div>
+            <span class="lbl-small">Clienta</span>
+            <strong id="chkSummaryClient">María García</strong>
+          </div>
+          <div>
+            <span class="lbl-small">Estilista</span>
+            <strong id="chkSummaryStylist">Leidy</strong>
+          </div>
+          <div class="text-right">
+            <span class="lbl-small">TOTAL</span>
+            <strong class="chk-big-total" id="chkSummaryTotal">$0</strong>
+          </div>
+        </div>
+
+        <!-- Condición de Pago: De Contado vs Crédito / Con Abono -->
+        <div class="payment-terms-select" style="margin-bottom: 1rem;">
+          <label class="lbl-title">Condición de Venta:</label>
+          <div class="terms-options" style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+            <button type="button" class="pay-term-btn active" id="btnTermContado" data-term="contado">
+              <i data-lucide="check-circle"></i>
+              <span>Totalmente Pagada (Contado)</span>
+            </button>
+            <button type="button" class="pay-term-btn" id="btnTermCredito" data-term="credito">
+              <i data-lucide="clock"></i>
+              <span>A Crédito / Con Abono</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Campos de Crédito / Abono Inicial -->
+        <div class="credit-input-box" id="creditInputBox" style="display:none; background:#FFFBEB; border:1px solid #FCD34D; border-radius:8px; padding:12px; margin-bottom:1rem;">
+          <div class="form-row-calc">
+            <div class="form-group">
+              <label style="color:#78350F; font-weight:700;">Monto Abonado Hoy ($):</label>
+              <input type="number" id="creditDepositInput" placeholder="0" min="0" value="0">
+            </div>
+            <div class="form-group">
+              <label style="color:#991B1B; font-weight:700;">Saldo Pendiente (Deuda):</label>
+              <strong class="credit-balance-due" id="creditBalanceDueVal" style="font-size:18px; color:#DC2626; display:block; padding-top:4px;">$0</strong>
+            </div>
+          </div>
+          <div class="form-row-calc" style="margin-top:8px;">
+            <div class="form-group">
+              <label style="color:#78350F;">Fecha Compromiso / Límite de Pago:</label>
+              <input type="date" id="creditDueDateInput">
+            </div>
+          </div>
+          <div class="alert-warn" id="creditAlertClientRequired" style="margin:8px 0 0; display:none; font-size:12px;">
+            ⚠️ <strong>Requerido:</strong> Para registrar una venta a crédito, ingresa el Nombre y Teléfono de la clienta.
+          </div>
+        </div>
+
+        <!-- Métodos de Pago -->
+        <div class="payment-methods-select">
+          <label class="lbl-title">Método de Pago:</label>
+          <div class="method-options">
+            <button class="pay-method-btn active" data-method="efectivo">
+              <i data-lucide="banknote"></i>
+              <span>Efectivo</span>
+            </button>
+            <button class="pay-method-btn" data-method="transferencia">
+              <i data-lucide="smartphone"></i>
+              <span>Transferencia / Nequi</span>
+            </button>
+            <button class="pay-method-btn" data-method="tarjeta">
+              <i data-lucide="credit-card"></i>
+              <span>Tarjeta</span>
+            </button>
+            <button class="pay-method-btn" data-method="mixto">
+              <i data-lucide="split"></i>
+              <span>Mixto (Dividido)</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Campos de dinero recibido y cambio (si es efectivo) -->
+        <div class="cash-calc-box" id="cashCalcBox">
+          <div class="form-row-calc">
+            <div class="form-group">
+              <label>Dinero recibido de la clienta:</label>
+              <input type="number" id="cashReceivedInput" placeholder="0">
+            </div>
+            <div class="form-group">
+              <label>Cambio / Vueltas:</label>
+              <strong class="cash-change-val" id="cashChangeVal">$0</strong>
+            </div>
+          </div>
+          <div class="quick-cash-pills">
+            <button class="pill-cash" data-exact="true">Monto Exacto</button>
+            <button class="pill-cash" data-add="50000">+$50.000</button>
+            <button class="pill-cash" data-add="100000">+$100.000</button>
+          </div>
+        </div>
+
+        <!-- Campos para pago mixto -->
+        <div class="split-pay-box" id="splitPayBox" style="display:none;">
+          <div class="form-row-calc">
+            <div class="form-group">
+              <label>Parte en Efectivo:</label>
+              <input type="number" id="splitCashInput" placeholder="0">
+            </div>
+            <div class="form-group">
+              <label>Parte en Digital / Tarjeta:</label>
+              <input type="number" id="splitDigitalInput" placeholder="0">
+            </div>
+          </div>
+        </div>
+
+        <!-- Opciones de Facturación -->
+        <div class="invoice-options">
+          <div class="form-group">
+            <label>Tipo de Comprobante:</label>
+            <select id="invoiceTypeSelect">
+              <option value="ticket">Ticket de Caja (Térmico 80mm)</option>
+              <option value="factura">Factura de Venta Estándar (PDF Carta)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Observaciones / Nota adicional:</label>
+            <input type="text" id="invoiceNotesInput" placeholder="Ej: Se aplicó garantía de brillo, etc.">
+          </div>
+        </div>
+
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-cancel-modal" id="btnCancelCheckout">Cancelar</button>
+        <button class="btn-confirm-checkout" id="btnProcessPayment">
+          <i data-lucide="check-circle-2"></i>
+          <span>Confirmar Venta y Generar Factura</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- MODAL 2: VISTA PREVIA DE FACTURA / TICKET               -->
+  <!-- ======================================================== -->
+  <div class="modal-overlay" id="receiptModal">
+    <div class="modal-box modal-receipt">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <i data-lucide="receipt"></i>
+          <h3 id="receiptModalTitle">Comprobante de Venta</h3>
+        </div>
+        <button class="btn-close-modal" id="btnCloseReceipt">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Contenedor del Ticket para visualización en pantalla -->
+        <div class="receipt-paper" id="receiptPaper">
+          <!-- Renderizado del ticket -->
+        </div>
+      </div>
+
+      <div class="modal-footer receipt-footer">
+        <!-- Botones de Anular/Eliminar (solo visibles al ver factura desde historial) -->
+        <div id="receiptVoidDeleteBtns" style="display:none; gap:6px; margin-right:auto;">
+          <button class="btn-action-danger-outline" id="btnVoidInvoice" title="Anular Factura" style="font-size:12px; padding:6px 12px;">
+            🚫 Anular
+          </button>
+          <button class="btn-action-danger" id="btnDeleteInvoice" title="Eliminar Factura definitivamente" style="font-size:12px; padding:6px 12px; background:#DC2626; border-color:#DC2626;">
+            🗑️ Eliminar
+          </button>
+        </div>
+        <button class="btn-action-outline" id="btnShareWhatsApp">
+          <i data-lucide="message-circle"></i>
+          <span>Enviar por WhatsApp</span>
+        </button>
+        <button class="btn-action-outline" id="btnPrintReceipt">
+          <i data-lucide="printer"></i>
+          <span>Imprimir Ticket</span>
+        </button>
+        <button class="btn-action-primary" id="btnDownloadInvoicePdf">
+          <i data-lucide="file-down"></i>
+          <span>Descargar Factura PDF</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- MODAL 3: AGREGAR / EDITAR PRODUCTO                      -->
+  <!-- ======================================================== -->
+  <div class="modal-overlay" id="productModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 id="productModalTitle">Nuevo Producto de Inventario</h3>
+        <button class="btn-close-modal" id="btnCloseProductModal">&times;</button>
+      </div>
+      <form id="productForm">
+        <input type="hidden" id="prodEditId">
+        <div class="modal-body form-grid">
+          <div class="form-group full-width">
+            <label>Nombre del Producto *</label>
+            <input type="text" id="prodName" required placeholder="Ej: Shampoo Post-Keratina Sin Sal 500ml">
+          </div>
+          
+          <div class="form-group">
+            <label>Código / SKU</label>
+            <input type="text" id="prodSku" placeholder="Ej: SH-01">
+          </div>
+
+          <div class="form-group">
+            <label>Tipo / Destino *</label>
+            <select id="prodType" required>
+              <option value="retail">Venta a Clientas (Retail)</option>
+              <option value="cabina">Uso Interno en Salón (Insumo)</option>
+              <option value="ambos">Ambos (Venta e Insumo)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Categoría *</label>
+            <select id="prodCategory" required>
+              <option value="keratinas">Keratinas & Alisados</option>
+              <option value="shampoos">Shampoos & Mascarillas</option>
+              <option value="tratamientos">Tratamientos Capilares</option>
+              <option value="tintes">Tintes & Químicos</option>
+              <option value="accesorios">Herramientas & Accesorios</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Stock Actual *</label>
+            <input type="number" id="prodStock" min="0" required value="10">
+          </div>
+
+          <div class="form-group">
+            <label>Alerta de Stock Mínimo *</label>
+            <input type="number" id="prodMinStock" min="1" required value="3">
+          </div>
+
+          <div class="form-group">
+            <label>Costo de Compra (Proveedor) *</label>
+            <input type="number" id="prodCost" min="0" required placeholder="Ej: 25000">
+          </div>
+
+          <div class="form-group">
+            <label>Precio de Venta al Público *</label>
+            <input type="number" id="prodPrice" min="0" required placeholder="Ej: 45000">
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-cancel-modal" id="btnCancelProductModal">Cancelar</button>
+          <button type="submit" class="btn-confirm-checkout">Guardar Producto</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- MODAL 4: AJUSTE / ENTRADA DE STOCK                      -->
+  <!-- ======================================================== -->
+  <div class="modal-overlay" id="stockMovementModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>Entrada o Ajuste de Inventario</h3>
+        <button class="btn-close-modal" id="btnCloseMovementModal">&times;</button>
+      </div>
+      <form id="stockMovementForm">
+        <div class="modal-body form-grid">
+          <div class="form-group full-width">
+            <label>Producto a Ajustar *</label>
+            <select id="movProductSelect" required>
+              <!-- Dinámico -->
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Tipo de Movimiento *</label>
+            <select id="movType" required>
+              <option value="entrada">➕ Entrada por Compra a Proveedor</option>
+              <option value="consumo_salon">➖ Salida por Consumo en Salón</option>
+              <option value="ajuste">⚙️ Ajuste Manual por Conteo Físico</option>
+              <option value="merma">❌ Merma / Producto Vencido o Dañado</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Cantidad de Unidades *</label>
+            <input type="number" id="movQuantity" min="1" required value="1">
+          </div>
+
+          <div class="form-group full-width">
+            <label>Motivo o Nota:</label>
+            <input type="text" id="movReason" placeholder="Ej: Factura Proveedor #1234">
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-cancel-modal" id="btnCancelMovementModal">Cancelar</button>
+          <button type="submit" class="btn-confirm-checkout">Aplicar Movimiento</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- MODAL 5: REGISTRAR GASTO / EGRESO                       -->
+  <!-- ======================================================== -->
+  <div class="modal-overlay" id="expenseModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>Registrar Gasto de Salón</h3>
+        <button class="btn-close-modal" id="btnCloseExpenseModal">&times;</button>
+      </div>
+      <form id="expenseForm">
+        <div class="modal-body form-grid">
+          <div class="form-group full-width">
+            <label>Concepto / Detalle del Gasto *</label>
+            <input type="text" id="expTitle" required placeholder="Ej: Pago de toallas desechables, café, etc.">
+          </div>
+
+          <div class="form-group">
+            <label>Categoría *</label>
+            <select id="expCategory" required>
+              <option value="insumos">Insumos y Limpieza</option>
+              <option value="proveedores">Pago a Proveedores</option>
+              <option value="servicios">Servicios Básicos (Luz, Agua, Internet)</option>
+              <option value="alimentacion">Refrigerios / Cafetería</option>
+              <option value="mantenimiento">Mantenimiento de Equipos</option>
+              <option value="otros">Otros Gastos</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Método de Pago con el que se Pagó *</label>
+            <select id="expPaymentMethod" required>
+              <option value="efectivo">Efectivo de la Caja</option>
+              <option value="transferencia">Transferencia Bancaria</option>
+            </select>
+          </div>
+
+          <div class="form-group full-width">
+            <label>Monto Pagado *</label>
+            <input type="number" id="expAmount" min="1" required placeholder="Ej: 35000">
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-cancel-modal" id="btnCancelExpenseModal">Cancelar</button>
+          <button type="submit" class="btn-confirm-checkout">Guardar Gasto</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- MODAL 6: NUEVA CITA MANUAL                              -->
+  <!-- ======================================================== -->
+  <div class="modal-overlay" id="appointmentModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>Agendar Nueva Clienta del Día</h3>
+        <button class="btn-close-modal" id="btnCloseAppointmentModal">&times;</button>
+      </div>
+      <form id="appointmentForm">
+        <div class="modal-body form-grid">
+          <div class="form-group">
+            <label>Nombre de la Clienta *</label>
+            <input type="text" id="aptClientName" required placeholder="Ej: Carmen Rodríguez">
+          </div>
+          <div class="form-group">
+            <label>Teléfono / WhatsApp *</label>
+            <input type="tel" id="aptClientPhone" required placeholder="+57 300 000 0000">
+          </div>
+          <div class="form-group">
+            <label>Fecha de la Cita *</label>
+            <input type="date" id="aptDate" required>
+          </div>
+          <div class="form-group">
+            <label>Hora de Inicio *</label>
+            <input type="time" id="aptTime" required value="09:00">
+          </div>
+          <div class="form-group">
+            <label>Estilista Asignada *</label>
+            <select id="aptStylistSelect" required>
+              <!-- Dinámico -->
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Servicio Principal *</label>
+            <select id="aptServiceSelect" required>
+              <!-- Dinámico -->
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-cancel-modal" id="btnCancelAppointmentModal">Cancelar</button>
+          <button type="submit" class="btn-confirm-checkout">Guardar Cita</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- MODAL 7: AGREGAR / EDITAR SERVICIO                      -->
+  <!-- ======================================================== -->
+  <div class="modal-overlay" id="serviceModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 id="serviceModalTitle">Editar Servicio</h3>
+        <button class="btn-close-modal" id="btnCloseServiceModal">&times;</button>
+      </div>
+      <form id="serviceForm">
+        <input type="hidden" id="svcEditId">
+        <div class="modal-body form-grid">
+          <div class="form-group full-width">
+            <label>Nombre del Servicio *</label>
+            <input type="text" id="svcName" required placeholder="Ej: Keratina Alisado Brasileño">
+          </div>
+
+          <div class="form-group">
+            <label>Precio al Público ($) *</label>
+            <input type="number" id="svcPrice" min="0" required placeholder="Ej: 180000">
+          </div>
+
+          <div class="form-group">
+            <label>Duración Estimada (Minutos) *</label>
+            <input type="number" id="svcDuration" min="5" max="480" required value="60">
+          </div>
+
+          <div class="form-group full-width">
+            <label>Categoría del Servicio *</label>
+            <select id="svcCategory" required>
+              <option value="servicios">✂️ Servicios Generales (Cortes, Peinados, Manicure)</option>
+              <option value="keratinas">🧴 Keratinas & Alisados</option>
+              <option value="tratamientos">💆 Tratamientos & Hidrataciones</option>
+              <option value="tintes">🎨 Tintes & Color</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-cancel-modal" id="btnCancelServiceModal">Cancelar</button>
+          <button type="submit" class="btn-confirm-checkout">Guardar Servicio</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- MODAL 8: LIMPIAR DATOS DE PRUEBA                        -->
+  <!-- ======================================================== -->
+  <div class="modal-overlay" id="cleanDataModal">
+    <div class="modal-box" style="max-width: 520px;">
+      <div class="modal-header" style="background: #FEF2F2;">
+        <div class="modal-title-wrap" style="color: #991B1B;">
+          <i data-lucide="trash-2"></i>
+          <h3>Limpiar Datos de Prueba</h3>
+        </div>
+        <button class="btn-close-modal" id="btnCloseCleanDataModal">&times;</button>
+      </div>
+      <div class="modal-body" style="display:flex; flex-direction:column; gap:12px;">
+        <div class="alert-warn" style="margin:0;">
+          ⚠️ <strong>Atención:</strong> Esta herramienta te permite borrar las facturas y citas que venían como demostración, para que tu sistema empiece en $0 con las ventas reales de tu salón.
+        </div>
+        <div class="alert-notice" style="margin:0; background:#ECFDF5; border-color:#A7F3D0; color:#065F46;">
+          ✅ <strong>Tu inventario de productos actualizado se mantendrá 100% intacto.</strong>
+        </div>
+
+        <p style="font-size:13px; font-weight:600; color:var(--navy); margin-top:6px;">¿Qué deseas limpiar?</p>
+
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <button class="btn-action-outline" id="btnModalCleanInvoices" style="justify-content:flex-start; padding:10px 14px;">
+            <i data-lucide="receipt"></i>
+            <span>Limpiar Solo Facturas y Ventas de Ejemplo</span>
+          </button>
+          <button class="btn-action-outline" id="btnModalCleanAppointments" style="justify-content:flex-start; padding:10px 14px;">
+            <i data-lucide="calendar-x"></i>
+            <span>Limpiar Solo Citas de Ejemplo de la Agenda</span>
+          </button>
+          <button class="btn-action-danger" id="btnModalCleanAll" style="justify-content:flex-start; padding:12px 14px; background:#991B1B; color:#FFF;">
+            <i data-lucide="sparkles"></i>
+            <span>Borrar TODO el Historial de Prueba (Dejar en $0)</span>
+          </button>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-cancel-modal" id="btnCancelCleanDataModal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- MODAL 9: CARGAR FACTURA DIGITAL DE PROVEEDOR (EXCEL/PDF) -->
+  <!-- ======================================================== -->
+  <div class="modal-overlay" id="supplierInvoiceModal">
+    <div class="modal-box" style="max-width: 950px; width: 95%;">
+      <div class="modal-header" style="background:#F0FDFA;">
+        <div class="modal-title-wrap" style="color:#0F766E;">
+          <i data-lucide="file-spreadsheet"></i>
+          <h3>Cargar Factura Digital de Proveedor & Actualizar Inventario</h3>
+        </div>
+        <button class="btn-close-modal" id="btnCloseSupplierInvoiceModal">&times;</button>
+      </div>
+
+      <div class="modal-body" style="display:flex; flex-direction:column; gap:16px;">
+        <!-- Zona de Carga de Archivo (Excel, PDF, CSV, TXT) -->
+        <div class="upload-dropzone" id="supplierDropzone">
+          <input type="file" id="supplierFileInput" accept=".xlsx, .xls, .csv, .pdf, .txt" style="display:none;">
+          <div class="dropzone-content" onclick="document.getElementById('supplierFileInput').click()">
+            <i data-lucide="upload-cloud" style="width:40px; height:40px; color:#0D9488;"></i>
+            <h4>Haz clic para seleccionar o arrastra tu factura digital aquí</h4>
+            <p>Compatible con archivos de proveedores: <strong>Excel (.xlsx, .xls)</strong>, <strong>CSV</strong>, <strong>PDF digital</strong> o <strong>Texto</strong></p>
+            <span class="btn-action-outline" style="pointer-events:none; margin-top:8px;">Examinar Archivo</span>
+          </div>
+          <div id="supplierFileName" style="display:none; margin-top:8px; font-weight:700; color:#0D9488; font-size:13px; text-align:center;"></div>
+        </div>
+
+        <!-- Encabezado de Factura -->
+        <div class="form-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); background: #F8FAFC; padding:12px; border-radius:8px; border:1px solid #E2E8F0;">
+          <div class="form-group">
+            <label>Nombre del Proveedor *</label>
+            <input type="text" id="supFormName" list="providersDataList" placeholder="Ej: Distribuidora Capilar" required>
+            <datalist id="providersDataList"></datalist>
+          </div>
+          <div class="form-group">
+            <label>Nº Factura Proveedor *</label>
+            <input type="text" id="supFormNumber" placeholder="Ej: FP-9812" required>
+          </div>
+          <div class="form-group">
+            <label>Fecha de Emisión *</label>
+            <input type="date" id="supFormIssueDate" required>
+          </div>
+          <div class="form-group">
+            <label>Fecha Límite de Pago *</label>
+            <input type="date" id="supFormDueDate" required>
+          </div>
+          <div class="form-group">
+            <label>% Descuento Proveedor</label>
+            <div style="display:flex; align-items:center; gap:6px;">
+              <input type="number" id="supFormDiscountPercent" min="0" max="100" value="0" placeholder="0">
+              <span style="font-weight:700;">%</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Condición de Pago *</label>
+            <select id="supFormPaymentTerm">
+              <option value="credito">A Crédito (Cuentas por Pagar)</option>
+              <option value="abono">Con Abono Inicial</option>
+              <option value="pagada">Totalmente Pagada (Contado)</option>
+            </select>
+          </div>
+          <div class="form-group" id="supFormInitialPayWrap" style="display:none;">
+            <label>Monto Pagado / Abonado Hoy ($)</label>
+            <input type="number" id="supFormInitialPayment" min="0" placeholder="0">
+          </div>
+        </div>
+
+        <!-- Barra de Configuración de Margen de Ganancia -->
+        <div class="margin-config-bar" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; background:#FEF3C7; padding:10px 14px; border-radius:8px; border:1px solid #FCD34D;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <i data-lucide="trending-up" style="color:#B45309;"></i>
+            <span style="font-size:13px; font-weight:700; color:#78350F;">Margen de Ganancia para Precios de Venta:</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <input type="number" id="supGlobalMargin" min="0" max="500" value="50" style="width:70px; padding:4px 8px; border-radius:6px; border:1px solid #D97706; font-weight:700; text-align:center;">
+            <span style="font-weight:700; color:#78350F;">%</span>
+            <button type="button" class="btn-action-outline" id="btnApplyGlobalMargin" style="padding:4px 10px; font-size:12px; background:#FFF;">Aplicar a Todo</button>
+          </div>
+        </div>
+
+        <!-- Tabla de Productos Extraídos / Mapeo -->
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <h4 style="font-size:14px; font-weight:700; color:var(--navy); margin:0;">
+            Productos Detectados en la Factura (<span id="supDetectedItemsCount">0</span>)
+          </h4>
+          <button type="button" class="btn-action-outline" id="btnAddManualSupplierRow" style="padding:4px 10px; font-size:12px;">
+            <i data-lucide="plus"></i> <span>+ Agregar Fila Manual</span>
+          </button>
+        </div>
+
+        <div class="table-responsive-container" style="max-height: 280px; overflow-y: auto;">
+          <table class="data-table" id="supplierItemsTable">
+            <thead>
+              <tr>
+                <th>Producto / Descripción</th>
+                <th style="width:75px;" class="text-right">Cant.</th>
+                <th style="width:105px;" class="text-right">Costo Bruto</th>
+                <th style="width:105px;" class="text-right">Costo Neto</th>
+                <th style="width:75px;" class="text-right">Margen %</th>
+                <th style="width:115px;" class="text-right">Precio Venta</th>
+                <th>Acción Inventario</th>
+                <th style="width:110px;" class="text-right">Subtotal</th>
+                <th style="width:40px;" class="text-center">✕</th>
+              </tr>
+            </thead>
+            <tbody id="supplierItemsTableBody">
+              <!-- Renderizado dinámico de filas editables -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Resumen de Totales de la Factura -->
+        <div style="display:flex; justify-content:flex-end; gap:20px; align-items:center; background:#F8FAFC; padding:12px; border-radius:8px; border:1px solid #E2E8F0; flex-wrap:wrap;">
+          <div style="font-size:13px;">Total Bruto: <strong id="supSumGross">$0</strong></div>
+          <div style="font-size:13px; color:#B45309;">Descuento Proveedor: <strong id="supSumDiscount">-$0</strong></div>
+          <div style="font-size:15px; font-weight:800; color:var(--navy);">TOTAL FACTURA: <strong id="supSumTotal">$0</strong></div>
+          <div style="font-size:15px; font-weight:800; color:#DC2626;">SALDO A DEBER: <strong id="supSumBalance">$0</strong></div>
+        </div>
+
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-cancel-modal" id="btnCancelSupplierInvoiceModal">Cancelar</button>
+        <button type="button" class="btn-confirm-checkout" id="btnConfirmSupplierInvoice" style="background:#0D9488; border-color:#0D9488;">
+          <i data-lucide="check-circle-2"></i>
+          <span>Confirmar e Ingresar a Inventario y Deuda</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- MODAL 10: REGISTRAR ABONO A FACTURA DE PROVEEDOR        -->
+  <!-- ======================================================== -->
+  <div class="modal-overlay" id="supplierPaymentModal">
+    <div class="modal-box" style="max-width: 480px;">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <i data-lucide="hand-coins"></i>
+          <h3>Registrar Abono a Proveedor</h3>
+        </div>
+        <button class="btn-close-modal" id="btnCloseSupplierPaymentModal">&times;</button>
+      </div>
+      <form id="supplierPaymentForm">
+        <input type="hidden" id="paySupInvoiceId">
+        <div class="modal-body form-grid">
+          <div class="form-group full-width">
+            <label>Proveedor & Factura:</label>
+            <div id="paySupInvoiceSummary" style="font-weight:700; color:var(--navy); padding:8px 12px; background:#F1F5F9; border-radius:6px;"></div>
+          </div>
+          <div class="form-group">
+            <label>Saldo Pendiente Actual:</label>
+            <strong id="paySupCurrentBalance" style="font-size:18px; color:#DC2626; display:block; padding-top:4px;">$0</strong>
+          </div>
+          <div class="form-group">
+            <label>Fecha del Abono *</label>
+            <input type="date" id="paySupDate" required>
+          </div>
+          <div class="form-group full-width">
+            <label>Monto a Abonar ($) *</label>
+            <input type="number" id="paySupAmount" min="1" required placeholder="0">
+            <div style="display:flex; gap:6px; margin-top:6px;">
+              <button type="button" class="btn-action-outline" id="btnPaySupFull" style="padding:3px 8px; font-size:11px;">Pagar Todo el Saldo</button>
+            </div>
+          </div>
+          <div class="form-group full-width">
+            <label>Método de Pago con el que se Pagó *</label>
+            <select id="paySupMethod" required>
+              <option value="efectivo">Efectivo de la Caja (Registra Egreso)</option>
+              <option value="transferencia">Transferencia Bancaria / Nequi</option>
+            </select>
+          </div>
+          <div class="form-group full-width">
+            <label>Referencia o Nota del Pago:</label>
+            <input type="text" id="paySupNote" placeholder="Ej: Transferencia Bancolombia #3912">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-cancel-modal" id="btnCancelSupplierPaymentModal">Cancelar</button>
+          <button type="submit" class="btn-confirm-checkout">Registrar Abono</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- MODAL 11: REGISTRAR ABONO DE CLIENTA (CARTERA)           -->
+  <!-- ======================================================== -->
+  <div class="modal-overlay" id="clientPaymentModal">
+    <div class="modal-box" style="max-width: 520px;">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <i data-lucide="receipt"></i>
+          <h3>Registrar Abono de Clienta</h3>
+        </div>
+        <button class="btn-close-modal" id="btnCloseClientPaymentModal">&times;</button>
+      </div>
+      <form id="clientPaymentForm">
+        <input type="hidden" id="payClientInvoiceId">
+        <div class="modal-body form-grid">
+          <div class="form-group full-width">
+            <label>Clienta & Factura:</label>
+            <div id="payClientSummary" style="font-weight:700; color:var(--navy); padding:8px 12px; background:#F1F5F9; border-radius:6px;"></div>
+          </div>
+          <div class="form-group">
+            <label>Total Factura:</label>
+            <span id="payClientTotalFactura" style="font-weight:700; display:block;">$0</span>
+          </div>
+          <div class="form-group">
+            <label>Saldo Pendiente a Cobrar:</label>
+            <strong id="payClientCurrentBalance" style="font-size:18px; color:#DC2626; display:block;">$0</strong>
+          </div>
+
+          <!-- Historial de pagos previos -->
+          <div class="form-group full-width" id="payClientHistoryBox">
+            <label>Historial de Abonos Recibidos:</label>
+            <div id="payClientHistoryList" style="max-height:100px; overflow-y:auto; background:#FAFAFA; border:1px solid #E5E7EB; border-radius:6px; padding:6px 10px; font-size:11.5px;"></div>
+          </div>
+
+          <div class="form-group">
+            <label>Fecha de Recepción *</label>
+            <input type="date" id="payClientDate" required>
+          </div>
+          <div class="form-group">
+            <label>Método de Pago *</label>
+            <select id="payClientMethod" required>
+              <option value="efectivo">Efectivo (Entra a Caja)</option>
+              <option value="transferencia">Transferencia (Nequi / Banco)</option>
+              <option value="tarjeta">Tarjeta</option>
+            </select>
+          </div>
+          <div class="form-group full-width">
+            <label>Monto que Abona ($) *</label>
+            <input type="number" id="payClientAmount" min="1" required placeholder="0">
+            <div style="display:flex; gap:6px; margin-top:6px;">
+              <button type="button" class="btn-action-outline" id="btnPayClientFull" style="padding:3px 8px; font-size:11px;">Paz y Salvo Completo</button>
+            </div>
+          </div>
+          <div class="form-group full-width">
+            <label>Nota / Comprobante:</label>
+            <input type="text" id="payClientNote" placeholder="Ej: Recibido en recepción">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-cancel-modal" id="btnCancelClientPaymentModal">Cancelar</button>
+          <button type="submit" class="btn-confirm-checkout">Guardar Abono & Actualizar Cartera</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- MODAL 12: DETALLE DE FACTURA DE PROVEEDOR               -->
+  <!-- ======================================================== -->
+  <div class="modal-overlay" id="supplierInvoiceDetailModal">
+    <div class="modal-box" style="max-width: 650px;">
+      <div class="modal-header">
+        <h3 id="supDetailTitle">Detalle de Factura de Proveedor</h3>
+        <button class="btn-close-modal" id="btnCloseSupplierInvoiceDetailModal">&times;</button>
+      </div>
+      <div class="modal-body" id="supDetailBody">
+        <!-- Contenido dinámico -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-cancel-modal" id="btnCancelSupplierInvoiceDetailModal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notificaciones Toast Flotantes -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Scripts de la Aplicación -->
+  <script src="app.js"></script>
+</body>
+</html>
